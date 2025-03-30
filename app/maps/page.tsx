@@ -5,6 +5,7 @@ import MapComponent from './mapsComponent';
 import DataList from './datalist';
 import { messaging } from "../lib/firebase";
 import { getToken, onMessage } from "firebase/messaging";
+import GalleryPage from './gallery';
 
 interface EmergencyData {
     id: string;
@@ -40,7 +41,6 @@ const Page: React.FC = () => {
 
 
 
-
     useEffect(() => {
 
         fetchData();
@@ -71,13 +71,18 @@ const Page: React.FC = () => {
    return (
         <div className="flex h-screen bg-gray-100">
             {/* Left Sidebar - DataList */}
-            <div className="w-1/3 bg-white shadow-md p-4 overflow-y-auto">
+            <div className="w-1/4 bg-white shadow-md p-4 overflow-y-auto">
                 <h2 className="text-xl font-semibold mb-4 text-gray-700">Data List</h2>
                 <DataList onDataLoaded={setLocations} onSelectLocation={setSelectedLocation} locations={data} />
             </div>
+            {/* <div className="w-1/4 h-1/2 relative">
+            {selectedLocation && <GalleryPage selectedLocation={selectedLocation} />}
+
+            </div> */}
 
             {/* Right Side - Map */}
-            <div className="w-2/3 h-full relative">
+            <div className="w-3/4 h-full relative">
+            
                 <MapComponent locations={locations} selectedLocation={selectedLocation} />
             </div>
         </div>
