@@ -12,6 +12,10 @@ interface EmergencyData {
     barangay: string;
     name: string;
     position: string;
+    photoURL:string;
+    status:string;
+    verified:boolean;
+    createdAt:string;
 }
 
 

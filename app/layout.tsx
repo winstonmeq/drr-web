@@ -5,7 +5,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import { useEffect } from "react";
+import TacticalNavbar from "./navbar";
 
 
 const geistSans = Geist({
@@ -29,21 +29,14 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) { 
 
-  // useEffect(() => {
-  //   if ("serviceWorker" in navigator) {
-  //     navigator.serviceWorker
-  //       .register("/firebase-messaging-sw.js")
-  //       .then((registration) => console.log("Service Worker registered:", registration))
-  //       .catch((err) => console.log("Service Worker registration failed:", err));
-  //   }
-  // }, []);
-  
+   
   return (
     <html lang="en">
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
 
+      <TacticalNavbar />
         {children}
       </body>
     </html>

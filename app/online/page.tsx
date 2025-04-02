@@ -34,7 +34,7 @@ export default function NotificationPage() {
         if (!msg) return;
 
         const token = await getToken(msg, {
-          vapidKey: "BIQXpTw59-zucclsrn62DdrayZNm79VG8wXtAWFobiu8BzpcCYQsans3n-o_nrfeZ2eFBTq0Qa-jhFKij9_EUUg",
+          vapidKey: process.env.NEXT_PUBLIC_vapidKey,
         });
 
         if (token) {
