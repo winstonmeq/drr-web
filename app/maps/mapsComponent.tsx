@@ -212,7 +212,7 @@ const MapPage: React.FC<{ locations: EmergencyData[]; selectedLocation: Emergenc
         <div
           style={{
             position: 'absolute',
-            bottom: '10px',
+            bottom: '70px',
             left: '10px',
             backgroundColor: 'rgba(255, 255, 255, 0.8)', // Transparent background
             padding: '10px',

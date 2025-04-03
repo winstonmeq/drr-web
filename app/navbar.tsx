@@ -11,6 +11,22 @@ import {
 } from "react-icons/fa";
 import AlertModal from "./alertModal"; // Import the modal component
 
+import {
+  SignedOut,
+  UserButton,
+} from '@clerk/nextjs'
+
+
+
+
+
+
+
+
+
+
+
+
 const TacticalNavbar: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
@@ -20,7 +36,7 @@ const TacticalNavbar: React.FC = () => {
 
   return (
     <>
-      <nav className="bg-gray-900 text-white p-4 shadow-lg border-b border-gray-700">
+      <nav className="bg-gray-900 text-white p-4 w-full shadow-lg border-b border-gray-700">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           {/* Logo/Title */}
           <div className="flex items-center space-x-3">
@@ -67,13 +83,10 @@ const TacticalNavbar: React.FC = () => {
               <span className="text-sm font-semibold uppercase">BRRMO</span>
             </a>
 
-            <a
-              href="/signout"
-              className="flex items-center space-x-2 text-gray-300 hover:text-red-500 transition-colors duration-200"
-            >
-              <FaSignOutAlt size={20} />
-              <span className="text-sm font-semibold uppercase">Sign Out</span>
-            </a>
+           
+            <UserButton />
+
+            
           </div>
         </div>
       </nav>

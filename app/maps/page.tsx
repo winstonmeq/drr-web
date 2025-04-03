@@ -74,7 +74,7 @@ const Page: React.FC = () => {
    return (
         <div className="flex h-screen bg-black-100">
             {/* Left Sidebar - DataList */}
-            <div className="w-3/12 bg-white shadow-md p-4 overflow-y-auto">
+            <div className="w-3/12 bg-white shadow-md overflow-y-auto">
                 <DataList onDataLoaded={setLocations} onSelectLocation={setSelectedLocation} locations={data} />
             </div>
             {/* <div className="w-1/4 h-1/2 relative">
@@ -83,7 +83,7 @@ const Page: React.FC = () => {
             </div> */}
 
             {/* Right Side - Map */}
-            <div className="w-11/12 h-full relative">
+            <div className="w-11/12 h-screen relative">
             
                 <MapComponent locations={locations} selectedLocation={selectedLocation} />
             </div>
