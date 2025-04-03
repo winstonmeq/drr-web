@@ -202,7 +202,7 @@ const MapPage: React.FC<{ locations: EmergencyData[]; selectedLocation: Emergenc
     };
 
     updateMap();
-  }, [map, selectedLocation, clearMarkers]); // Dependencies are stable now
+  }, [map, selectedLocation]); // Dependencies are stable now
 
   return (
     <div style={{ height: '100vh', width: '100%' }}>
