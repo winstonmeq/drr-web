@@ -7,12 +7,12 @@ import {
   FaBell, 
   FaUser, 
   FaShieldAlt, 
-  FaSignOutAlt 
+  // FaSignOutAlt 
 } from "react-icons/fa";
 import AlertModal from "./alertModal"; // Import the modal component
 
 import {
-  SignedOut,
+  // SignedOut,
   UserButton,
 } from '@clerk/nextjs'
 
