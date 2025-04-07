@@ -15,6 +15,7 @@ import {
   // SignedOut,
   UserButton,
 } from '@clerk/nextjs'
+import Link from "next/link";
 
 
 
@@ -48,13 +49,22 @@ const TacticalNavbar: React.FC = () => {
 
           {/* Navigation Links */}
           <div className="flex items-center space-x-6">
-            <a
-              href="/home"
+            <Link
+              href="/"
               className="flex items-center space-x-2 text-gray-300 hover:text-green-500 transition-colors duration-200"
             >
               <FaHome size={20} />
               <span className="text-sm font-semibold uppercase">Home</span>
-            </a>
+            </Link>
+
+            
+            <Link
+              href="/maps"
+              className="flex items-center space-x-2 text-gray-300 hover:text-green-500 transition-colors duration-200"
+            >
+              <FaUser size={20} />
+              <span className="text-sm font-semibold uppercase">Maps</span>
+            </Link>
 
             <button
               onClick={toggleModal}
@@ -67,13 +77,6 @@ const TacticalNavbar: React.FC = () => {
               </span>
             </button>
 
-            <a
-              href="/profile"
-              className="flex items-center space-x-2 text-gray-300 hover:text-green-500 transition-colors duration-200"
-            >
-              <FaUser size={20} />
-              <span className="text-sm font-semibold uppercase">Profile</span>
-            </a>
 
             <a
               href="/brrmo"
