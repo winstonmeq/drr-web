@@ -1,5 +1,5 @@
-// import { auth } from '@clerk/nextjs/server'
-// import { redirect } from 'next/navigation'
+import { auth } from '@clerk/nextjs/server'
+import { redirect } from 'next/navigation'
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 
@@ -8,12 +8,12 @@ import {  SignInButton} from '@clerk/nextjs'
 
 
 export default async function Home() {
-  // const { userId } = await auth()
+  const { userId } = await auth()
 
-  // // If user is signed in, redirect to /maps
-  // if (userId) {
-  //   redirect('/maps')
-  // }
+  // If user is signed in, redirect to /maps
+  if (userId) {
+    redirect('/maps')
+  }
 
   // If user is not signed in, show the page content
   return (

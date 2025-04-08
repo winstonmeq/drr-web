@@ -50,9 +50,7 @@ export default function RootLayout({
               <SignUpButton />
             </SignedOut> */}
             <SignedIn>
-              <TacticalNavbar />             
-
-
+              <TacticalNavbar />
             </SignedIn>
           </header>
 

@@ -1,28 +1,29 @@
 import moment from "moment";
 import React from "react";
-import { 
-  FaFire, 
-  FaAmbulance, 
-  FaWater, 
-  FaMountain, 
-  FaExclamationTriangle 
+import {
+  FaFire,
+  FaAmbulance,
+  FaWater,
+  FaMountain,
+  FaExclamationTriangle,
 } from "react-icons/fa";
-import Image from "next/image";
+// import Image from "next/image";
+import { Button } from "@/components/ui/button";
 
 interface EmergencyData {
-    id: string;
-    emergency: string;
-    lat: string;
-    long: string;
-    mobile: string;
-    purok: string;
-    barangay: string;
-    name: string;
-    position: string;
-    photoURL: string;
-    status: boolean;
-    verified: boolean;
-    createdAt: string;
+  id: string;
+  emergency: string;
+  lat: string;
+  long: string;
+  mobile: string;
+  purok: string;
+  barangay: string;
+  name: string;
+  position: string;
+  photoURL: string;
+  status: boolean;
+  verified: boolean;
+  createdAt: string;
 }
 
 interface DataListProps {
@@ -65,51 +66,58 @@ const DataList: React.FC<DataListProps> = ({ locations, onSelectLocation }) => {
             <div
               key={location.id}
               className="border-l-4 border-red-600 rounded-xl "
-              onClick={() => onSelectLocation(location)}
+              // onClick={() => onSelectLocation(location)}
             >
-              <div className="bg-gray-800 rounded-lg p-4 hover:bg-gray-700 transition-colors duration-200 cursor-pointer border  border-gray-600 ">
-              <div className="flex items-center space-x-4 ">
-              
-                <div className="flex-1">
-                  <div className="flex items-center justify-start">
-                  <div className="flex-shrink-0">
-                  {getEmergencyIcon(location.emergency)}
-                </div>
-                    <h3 className="text-lg font-bold text-white uppercase pl-4">
-                      {location.emergency}
-                    </h3>
-                  </div>
-                  <p className="text-sm text-gray-300 mt-1">
-                    CONTACT: {location.name}
-                  </p>
-                  <div className="mt-1 text-sm text-gray-400">
-                    <p>
-                      LOCATION: {location.purok}, {location.barangay}
+              <div className="bg-gray-800 rounded-lg p-4 hover:bg-gray-700 transition-colors duration-200 border  border-gray-600 ">
+                <div className="flex items -center space-x-4 ">
+                  <div className="flex-1"  >
+                    <div className="flex items-center justify-start">
+                      <div className="flex-shrink-0">
+                        {getEmergencyIcon(location.emergency)}
+                      </div>
+                      <h3 className="text-lg font-bold text-white uppercase pl-4">
+                        {location.emergency}
+                      </h3>
+                    </div>
+                    <p className="text-sm text-gray-300 mt-1">
+                      CONTACT: {location.name}
                     </p>
-                    <p>MOBILE: {location.mobile}</p>
-                  </div>
-                  <div className="mt-2 flex items-center space-x-2">
-                    {location.verified && (
-                      <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-900 text-green-300 uppercase">
-                        AUTHENTICATED
+                    <div className="mt-1 text-sm text-gray-400">
+                      <p>
+                        LOCATION: {location.purok}, {location.barangay}
+                      </p>
+                      <p>MOBILE: {location.mobile}</p>
+                    </div>
+                    <div className="mt-2 flex items-center space-x-2">
+                      {location.verified && (
+                        <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-900 text-green-300 uppercase">
+                          AUTHENTICATED
+                        </span>
+                      )}
+                      <span className="text-xs text-gray-500">
+                        {moment(location.createdAt).fromNow().toUpperCase()}
                       </span>
-                    )}
-                    <span className="text-xs text-gray-500">
-                      {moment(location.createdAt).fromNow().toUpperCase()}
-                    </span>
+                    </div>
                   </div>
-                </div>
-                <div className="rounded-full overflow-hidden w-20 h-20">
-                   <Image
-                      src={location.photoURL || '/no-image.png'}
+
+                  <div className="flex flex-col justify-center items-center gap-3">
+
+                  {/* <div className="rounded-full overflow-hidden w-20 h-20">
+                    <Image
+                      src={location.photoURL || "/no-image.png"}
                       alt="Location"
                       width={50}
                       height={50}
                       className="object-cover w-full h-full"
-                      />
-                  </div>
+                    />
+                  </div> */}
 
-              </div>
+                  <Button className="hover:bg-gray-800 transition-colors duration-200 cursor-pointer" onClick={() => onSelectLocation(location)}>Maps</Button>
+                  <Button className="hover:bg-gray-800 transition-colors duration-200 cursor-pointer">Post</Button>
+
+                  </div>
+                 
+                </div>
               </div>
             </div>
           ))}
