@@ -30,7 +30,7 @@ const Page: React.FC = () => {
 
     const fetchData = async () => {
         try {
-          const res = await fetch('https://47.129.250.250/api/emergency', { cache: 'no-store' });
+          const res = await fetch('https://qalert.uniall.tk/api/emergency', { cache: 'no-store' });
           const result = await res.json();
   
           console.log('API Response:', result.emergency_data); // Debug: Log the response
