@@ -10,6 +10,8 @@ export default async function AdminPage() {
 
   const currentUserRole = (sessionClaims?.metadata as { role?: string })?.role;
 
+  console.log('Current User Role:', currentUserRole);
+
   if (currentUserRole !== 'admin') {
     return <div>You are not authorized. Role: {currentUserRole || 'none'}</div>;
   }

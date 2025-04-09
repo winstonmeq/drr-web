@@ -1,5 +1,7 @@
+'use client'
+
 import moment from "moment";
-import React from "react";
+import React, { useState } from "react";
 import {
   FaFire,
   FaAmbulance,
@@ -9,6 +11,7 @@ import {
 } from "react-icons/fa";
 // import Image from "next/image";
 import { Button } from "@/components/ui/button";
+import PostModal from "./postModal";
 
 interface EmergencyData {
   id: string;
@@ -22,6 +25,8 @@ interface EmergencyData {
   position: string;
   photoURL: string;
   status: boolean;
+  situation: string;
+  munName: string;
   verified: boolean;
   createdAt: string;
 }
@@ -29,10 +34,26 @@ interface EmergencyData {
 interface DataListProps {
   locations: EmergencyData[];
   onDataLoaded: (data: EmergencyData[]) => void;
-  onSelectLocation: (location: EmergencyData) => void;
+  onSelectLocation: (location: EmergencyData | null) => void;
 }
 
 const DataList: React.FC<DataListProps> = ({ locations, onSelectLocation }) => {
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedLocation, setSelectedLocation] = useState<EmergencyData | null>(null);
+  
+  const toggleModal = () => {
+    
+    setIsModalOpen(!isModalOpen);
+  };
+
+  // New function to handle post click and clear selected location
+  const handlePostClick = (location: EmergencyData) => {
+    // Clear the selected location by passing null or undefined
+    onSelectLocation(null); // Using 'as any' to bypass strict typing temporarily
+    setSelectedLocation(location);
+    toggleModal();
+  };
+    
   // Function to get appropriate icon based on emergency type
   const getEmergencyIcon = (emergency: string) => {
     const type = emergency.toLowerCase();
@@ -53,7 +74,7 @@ const DataList: React.FC<DataListProps> = ({ locations, onSelectLocation }) => {
 
   return (
     <div className="max-w-2xl mx-auto p-4 bg-gray-900 min-h-screen">
-      <h2 className="text-2xl font-bold text-white mb-4 tracking-wider uppercase  pb-2">
+      <h2 className="text-2xl font-bold text-white mb-4 tracking-wider uppercase pb-2">
         Emergency Reports
       </h2>
       {locations.length === 0 ? (
@@ -66,11 +87,10 @@ const DataList: React.FC<DataListProps> = ({ locations, onSelectLocation }) => {
             <div
               key={location.id}
               className="border-l-4 border-red-600 rounded-xl "
-              // onClick={() => onSelectLocation(location)}
             >
-              <div className="bg-gray-800 rounded-lg p-4 hover:bg-gray-700 transition-colors duration-200 border  border-gray-600 ">
-                <div className="flex items -center space-x-4 ">
-                  <div className="flex-1"  >
+              <div className="bg-gray-800 rounded-lg p-4 hover:bg-gray-700 transition-colors duration-200 border border-gray-600 ">
+                <div className="flex items-center space-x-4 ">
+                  <div className="flex-1">
                     <div className="flex items-center justify-start">
                       <div className="flex-shrink-0">
                         {getEmergencyIcon(location.emergency)}
@@ -87,6 +107,7 @@ const DataList: React.FC<DataListProps> = ({ locations, onSelectLocation }) => {
                         LOCATION: {location.purok}, {location.barangay}
                       </p>
                       <p>MOBILE: {location.mobile}</p>
+                      {/* <p>MOBILE: {location.photoURL}</p> */}
                     </div>
                     <div className="mt-2 flex items-center space-x-2">
                       {location.verified && (
@@ -101,28 +122,30 @@ const DataList: React.FC<DataListProps> = ({ locations, onSelectLocation }) => {
                   </div>
 
                   <div className="flex flex-col justify-center items-center gap-3">
-
-                  {/* <div className="rounded-full overflow-hidden w-20 h-20">
-                    <Image
-                      src={location.photoURL || "/no-image.png"}
-                      alt="Location"
-                      width={50}
-                      height={50}
-                      className="object-cover w-full h-full"
-                    />
-                  </div> */}
-
-                  <Button className="hover:bg-gray-800 transition-colors duration-200 cursor-pointer" onClick={() => onSelectLocation(location)}>Maps</Button>
-                  <Button className="hover:bg-gray-800 transition-colors duration-200 cursor-pointer">Post</Button>
-
+                    <Button 
+                      className="hover:bg-gray-800 transition-colors duration-200 cursor-pointer" 
+                      onClick={() => onSelectLocation(location)}
+                    >
+                      Maps
+                    </Button>
+                    <Button 
+                      className="hover:bg-gray-800 transition-colors duration-200 cursor-pointer" 
+                      onClick={() => handlePostClick(location)}
+                    >
+                      Post
+                    </Button>
                   </div>
-                 
                 </div>
               </div>
             </div>
           ))}
         </div>
       )}
+      {isModalOpen && <PostModal 
+          selectedLocation={selectedLocation}
+          onSelectLocation={onSelectLocation}
+          onClose={toggleModal}
+        />}
     </div>
   );
 };

@@ -1,13 +1,16 @@
 import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server';
 
 // Define protected routes (e.g., admin routes)
-const isAdminRoute = createRouteMatcher(['/admin(.*)']);
+const isAdminRoute = createRouteMatcher(['/admin(.*)', '/dashboard(.*)', '/online(.*)','/maps(.*)']);
+
 
 export default clerkMiddleware(async (auth, req) => {
   // Protect admin routes
   if (isAdminRoute(req)) {
     const { sessionClaims } = await auth();
     const role = (sessionClaims?.metadata as { role?: string })?.role;
+
+    console.log('Session claims:', role);
 
     // if (role !== 'admin') {
     //   // Redirect non-admins to homepage

@@ -17,6 +17,8 @@ interface EmergencyData {
     name: string;
     position: string;
     photoURL:string;
+    situation:string;
+    munName:string;
     status:boolean;
     verified:boolean;
     createdAt:string;
