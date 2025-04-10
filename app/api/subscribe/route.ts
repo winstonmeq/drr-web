@@ -12,7 +12,7 @@ if (!admin.apps.length) {
     }),
   });
 }
-
+////Original code
 export async function POST(req: Request) {
   try {
     const { token, topic } = await req.json();
@@ -26,3 +26,4 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Failed to subscribe" }, { status: 500 });
   }
 }
+

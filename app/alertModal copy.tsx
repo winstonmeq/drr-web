@@ -1,7 +1,6 @@
 'use client'
 import React, { useState } from "react";
-import { FaTimes} from "react-icons/fa";
-import Image from "next/image";
+import { FaTimes } from "react-icons/fa";
 
 interface EmergencyData {
   emergency: string;
@@ -27,8 +26,12 @@ interface AlertModalProps {
 }
 
 const AlertModal: React.FC<AlertModalProps> = ({ onClose }) => {
+
+
+  const [selectedForm, setSelectedForm] = useState<"blue" | "red">("blue");
+  
   const [formData, setFormData] = useState<EmergencyData>({
-    emergency: "blue", // Default to blue alert
+    emergency: "Blue Alert",
     lat: "7.1577",
     long: "125.0513",
     mobile: "09481234567",
@@ -36,7 +39,26 @@ const AlertModal: React.FC<AlertModalProps> = ({ onClose }) => {
     barangay: "Poblacion",
     name: "MDRRMO",
     position: "Government",
-    photoURL: "",
+    photoURL: "https://res.cloudinary.com/dagi3xoz0/image/upload/v1744289199/logo/bluealert_sggcov.jpg",
+    situation: "",
+    munName: "President Roxaselite",
+    status: false,
+    verified: false,
+    createdAt: new Date().toISOString(),
+    munId: "67e362085d82ab1bd2f2662e",
+    provId: "67e23dcc8de27c2818dbbd9b",
+  });
+
+  const [formData2, setFormData2] = useState<EmergencyData>({
+    emergency: "Red Alert",
+    lat: "7.1577",
+    long: "125.0513",
+    mobile: "09481234567",
+    purok: "none",
+    barangay: "Poblacion",
+    name: "MDRRMO",
+    position: "Government",
+    photoURL: "https://res.cloudinary.com/dagi3xoz0/image/upload/v1744290772/logo/redalert_gfmsbg.jpg",
     situation: "",
     munName: "President Roxas",
     status: false,
@@ -47,87 +69,43 @@ const AlertModal: React.FC<AlertModalProps> = ({ onClose }) => {
   });
 
   const [isLoading, setIsLoading] = useState(false);
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
-  const handleInputChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
-  ) => {
+  const currentFormData = selectedForm === "blue" ? formData : formData2;
+  const setCurrentFormData = selectedForm === "blue" ? setFormData : setFormData2;
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({
+    setCurrentFormData((prev) => ({
       ...prev,
       [name]: value,
     }));
   };
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      setSelectedFile(file);
-      const preview = URL.createObjectURL(file);
-      setPreviewUrl(preview);
-    }
-  };
-
-  const uploadImageToCloudinary = async (file: File) => {
-    const cloudinaryUrl = `https://api.cloudinary.com/v1_1/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}/image/upload`;
-    
-    const formData = new FormData();
-    formData.append('file', file);
-    formData.append('upload_preset', process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET || 'drrphoto');
-    formData.append('api_key', process.env.NEXT_PUBLIC_CLOUDINARY_API_KEY || '115382555444171');
-
-    try {
-      const response = await fetch(cloudinaryUrl, {
-        method: 'POST',
-        body: formData,
-      });
-
-      if (!response.ok) {
-        throw new Error(`Cloudinary upload failed: ${response.statusText}`);
-      }
-
-      const data = await response.json();
-      if (data.secure_url) {
-        return data.secure_url;
-      } else {
-        throw new Error('No secure URL returned from Cloudinary');
-      }
-    } catch (error) {
-      console.error('Error uploading image to Cloudinary:', error);
-      throw error;
-    }
+  const handleFormSelect = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setSelectedForm(e.target.value as "blue" | "red");
   };
 
   const handleSubmit = async () => {
-    if (!formData.emergency || !formData.lat || !formData.long) {
+    if (!currentFormData.emergency || !currentFormData.lat || !currentFormData.long) {
       alert("Please fill required fields: Emergency, Latitude, and Longitude");
       return;
-      }
+    }
 
     setIsLoading(true);
 
     try {
-      let photoURL = formData.photoURL;
-      
-      if (selectedFile) {
-        photoURL = await uploadImageToCloudinary(selectedFile);
-      }
-
-      const updatedFormData = { ...formData, photoURL };
-
       const response = await fetch("/api/posts", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(updatedFormData),
+        body: JSON.stringify(currentFormData),
       });
+
+      console.log("this is the form", currentFormData);
 
       if (response.ok) {
         console.log("Emergency posted successfully");
-        setSelectedFile(null);
-        setPreviewUrl(null);
         onClose();
       } else {
         console.error("Failed to post emergency:", response.statusText);
@@ -135,7 +113,7 @@ const AlertModal: React.FC<AlertModalProps> = ({ onClose }) => {
       }
     } catch (error) {
       console.error("Error posting emergency:", error);
-      alert("An error occurred while posting: " + (error instanceof Error ? error.message : "Unknown error"));
+      alert("An error occurred while posting. Please try again.");
     } finally {
       setIsLoading(false);
     }
@@ -147,6 +125,7 @@ const AlertModal: React.FC<AlertModalProps> = ({ onClose }) => {
       style={{ backgroundColor: "rgba(229, 231, 235, 0.3)" }}
     >
       <div className="bg-gray-800 rounded-lg shadow-lg p-6 w-full max-w-lg border border-gray-600">
+        {/* Modal Header */}
         <div className="flex items-center justify-between border-b border-gray-700 pb-3">
           <h2 className="text-xl font-bold text-white uppercase tracking-wider">
             Alert Notification
@@ -160,22 +139,40 @@ const AlertModal: React.FC<AlertModalProps> = ({ onClose }) => {
           </button>
         </div>
 
+        {/* Form Fields */}
         <div className="mt-4 space-y-4">
+          {/* Alert Type Selection */}
           <div>
-            <label htmlFor="emergency" className="block text-white mb-1">
+            <label htmlFor="alertType" className="block text-white mb-1">
               Alert Type *
             </label>
             <select
-              id="emergency"
-              name="emergency" // Added name attribute to match formData
-              value={formData.emergency}
-              onChange={handleInputChange} // Fixed typo from handleInputChanget
+              id="alertType"
+              value={selectedForm}
+              onChange={handleFormSelect}
               className="w-full p-2 bg-gray-700 text-white rounded border border-gray-600"
               disabled={isLoading}
             >
-              <option value="Blue Alert">Blue Alert</option>
-              <option value="Red Aler">Red Alert</option>
+              <option value="blue">Blue Alert</option>
+              <option value="red">Red Alert</option>
             </select>
+          </div>
+
+          {/* Emergency Type */}
+          <div>
+            <label htmlFor="emergency" className="block text-white mb-1">
+              Emergency Type *
+            </label>
+            <input
+              type="text"
+              id="emergency"
+              name="emergency"
+              value={currentFormData.emergency}
+              onChange={handleInputChange}
+              placeholder="Emergency Type *"
+              className="w-full p-2 bg-gray-700 text-white rounded border border-gray-600"
+              disabled={isLoading}
+            />
           </div>
 
           <div className="flex space-x-4">
@@ -187,7 +184,7 @@ const AlertModal: React.FC<AlertModalProps> = ({ onClose }) => {
                 type="text"
                 id="name"
                 name="name"
-                value={formData.name}
+                value={currentFormData.name}
                 onChange={handleInputChange}
                 placeholder="Name"
                 className="w-full p-2 bg-gray-700 text-white rounded border border-gray-600"
@@ -202,7 +199,7 @@ const AlertModal: React.FC<AlertModalProps> = ({ onClose }) => {
                 type="text"
                 id="position"
                 name="position"
-                value={formData.position}
+                value={currentFormData.position}
                 onChange={handleInputChange}
                 placeholder="Position"
                 className="w-full p-2 bg-gray-700 text-white rounded border border-gray-600"
@@ -211,6 +208,7 @@ const AlertModal: React.FC<AlertModalProps> = ({ onClose }) => {
             </div>
           </div>
 
+          {/* Mobile Number */}
           <div>
             <label htmlFor="mobile" className="block text-white mb-1">
               Mobile Number
@@ -219,7 +217,7 @@ const AlertModal: React.FC<AlertModalProps> = ({ onClose }) => {
               type="text"
               id="mobile"
               name="mobile"
-              value={formData.mobile}
+              value={currentFormData.mobile}
               onChange={handleInputChange}
               placeholder="Mobile Number"
               className="w-full p-2 bg-gray-700 text-white rounded border border-gray-600"
@@ -227,6 +225,7 @@ const AlertModal: React.FC<AlertModalProps> = ({ onClose }) => {
             />
           </div>
 
+          {/* Purok and Municipality in one row */}
           <div className="flex space-x-4">
             <div className="flex-1">
               <label htmlFor="purok" className="block text-white mb-1">
@@ -236,7 +235,7 @@ const AlertModal: React.FC<AlertModalProps> = ({ onClose }) => {
                 type="text"
                 id="purok"
                 name="purok"
-                value={formData.purok}
+                value={currentFormData.purok}
                 onChange={handleInputChange}
                 placeholder="Purok"
                 className="w-full p-2 bg-gray-700 text-white rounded border border-gray-600"
@@ -251,41 +250,16 @@ const AlertModal: React.FC<AlertModalProps> = ({ onClose }) => {
                 type="text"
                 id="barangay"
                 name="barangay"
-                value={formData.barangay}
+                value={currentFormData.barangay}
                 onChange={handleInputChange}
-                placeholder="Barangay"
+                placeholder="Municipality"
                 className="w-full p-2 bg-gray-700 text-white rounded border border-gray-600"
                 disabled={isLoading}
               />
             </div>
           </div>
 
-          <div>
-            <label htmlFor="photo" className="block text-white mb-1">
-              Upload Photo
-            </label>
-            <input
-              type="file"
-              id="photo"
-              accept="image/*"
-              onChange={handleFileChange}
-              className="w-full p-2 bg-gray-700 text-white rounded border border-gray-600"
-              disabled={isLoading}
-            />
-            {previewUrl && (
-              <div className="mt-2">
-                <Image
-                  src={previewUrl}
-                  alt="Preview"
-                  className="max-w-full h-auto rounded"
-                  style={{ maxHeight: '200px' }}
-                  width={200}
-                  height={200}  
-                />
-              </div>
-            )}
-          </div>
-
+          {/* Situation */}
           <div>
             <label htmlFor="situation" className="block text-white mb-1">
               Situation
@@ -293,7 +267,7 @@ const AlertModal: React.FC<AlertModalProps> = ({ onClose }) => {
             <textarea
               id="situation"
               name="situation"
-              value={formData.situation}
+              value={currentFormData.situation}
               onChange={handleInputChange}
               placeholder="Situation"
               className="w-full p-2 bg-gray-700 text-white rounded border border-gray-600"
@@ -303,6 +277,7 @@ const AlertModal: React.FC<AlertModalProps> = ({ onClose }) => {
           </div>
         </div>
 
+        {/* Modal Footer */}
         <div className="mt-6 flex justify-end space-x-4">
           <button
             onClick={handleSubmit}

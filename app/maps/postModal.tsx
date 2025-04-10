@@ -4,7 +4,6 @@ import { FaTimes } from "react-icons/fa";
 
 interface EmergencyData {
   id: string;
-
   emergency: string;
   lat: string;
   long: string;
@@ -50,6 +49,7 @@ const PostModal: React.FC<PostModalProps> = ({ selectedLocation, onSelectLocatio
       createdAt: new Date().toISOString(),
     }
   );
+  
   const [isLoading, setIsLoading] = useState(false);
 
   // Update form data when selectedLocation changes
@@ -78,7 +78,7 @@ const PostModal: React.FC<PostModalProps> = ({ selectedLocation, onSelectLocatio
     setIsLoading(true);
 
     try {
-      const response = await fetch("https://qalert.uniall.tk/api/postnotify?token=mySecretAlertifyToken2025", {
+      const response = await fetch("/api/posts", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -136,6 +136,7 @@ const PostModal: React.FC<PostModalProps> = ({ selectedLocation, onSelectLocatio
       type="text"
       id="emergency"
       name="emergency"
+      readOnly
       value={formData.emergency}
       onChange={handleInputChange}
       placeholder="Emergency Type *"
@@ -155,6 +156,7 @@ const PostModal: React.FC<PostModalProps> = ({ selectedLocation, onSelectLocatio
       id="name"
       name="name"
       value={formData.name}
+      readOnly
       onChange={handleInputChange}
       placeholder="Name"
       className="w-full p-2 bg-gray-700 text-white rounded border border-gray-600"
@@ -169,6 +171,7 @@ const PostModal: React.FC<PostModalProps> = ({ selectedLocation, onSelectLocatio
       type="text"
       id="position"
       name="position"
+      readOnly
       value={formData.position}
       onChange={handleInputChange}
       placeholder="Position"
@@ -187,6 +190,7 @@ const PostModal: React.FC<PostModalProps> = ({ selectedLocation, onSelectLocatio
       type="text"
       id="mobile"
       name="mobile"
+      readOnly
       value={formData.mobile}
       onChange={handleInputChange}
       placeholder="Mobile Number"
@@ -205,6 +209,7 @@ const PostModal: React.FC<PostModalProps> = ({ selectedLocation, onSelectLocatio
         type="text"
         id="purok"
         name="purok"
+        readOnly
         value={formData.purok}
         onChange={handleInputChange}
         placeholder="Purok"
@@ -220,6 +225,7 @@ const PostModal: React.FC<PostModalProps> = ({ selectedLocation, onSelectLocatio
         type="text"
         id="barangay"
         name="barangay"
+        readOnly
         value={formData.barangay}
         onChange={handleInputChange}
         placeholder="Municipality"

@@ -63,10 +63,11 @@ const MapPage: React.FC<{ locations: EmergencyData[]; selectedLocation: Emergenc
           const center = { lat: 7.1577, lng: 125.0513 };
 
           const mapOptions = {
-            center,
+             center,
             zoom: 12,
             mapId: 'e442539727ad5d7e',
-            mapTypeId: 'satellite', // Added to set default to satellite view
+            mapTypeId: 'satellite',
+            scrollwheel: true, // Specifically disables mouse wheel zooming (older property)
           };
 
           const mapElement = document.getElementById('map');

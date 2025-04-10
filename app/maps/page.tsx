@@ -25,7 +25,7 @@ interface EmergencyData {
 }
 
 const Page: React.FC = () => {
-    const [locations, setLocations] = useState<EmergencyData[]>([]);
+    const [locations] = useState<EmergencyData[]>([]);
     const [selectedLocation, setSelectedLocation] = useState<EmergencyData | null>(null);
   const [data, setData] = useState<EmergencyData[]>([]);
 
@@ -38,9 +38,13 @@ const Page: React.FC = () => {
           console.log('API Response:', result.emergency_data); // Debug: Log the response
   
           setData(result.emergency_data);
+
         } catch (error) {
+
           console.error('Error fetching emergency data:', error);
+
           setData([]); // Ensure data is always an array to prevent .map() errors
+
         }
       };
 
@@ -56,9 +60,11 @@ const Page: React.FC = () => {
             const unsubscribe = onMessage(msg, (payload) => {
               console.log("FCM Message Received:", payload);
               // Reload the page when a message is received
+              fetchData();
+
               alert(payload.notification?.body || "No notification body available.");
 
-            fetchData();
+         
             });
 
             // Cleanup the listener when the component unmounts
@@ -77,7 +83,10 @@ const Page: React.FC = () => {
         <div className="flex h-screen bg-black-100">
             {/* Left Sidebar - DataList */}
             <div className="w-3/12 bg-white shadow-md overflow-y-auto">
-                <DataList onDataLoaded={setLocations} onSelectLocation={setSelectedLocation} locations={data} />
+                <DataList 
+                // onDataLoaded={setLocations} 
+                onSelectLocation={setSelectedLocation} 
+                locations={data} />
             </div>
             {/* <div className="w-1/4 h-1/2 relative">
             {selectedLocation && <GalleryPage selectedLocation={selectedLocation} />}
@@ -85,7 +94,7 @@ const Page: React.FC = () => {
             </div> */}
 
             {/* Right Side - Map */}
-            <div className="w-11/12 h-screen relative">
+            <div className="flex w-11/12 h-screen relative">
             
                 <MapComponent locations={locations} selectedLocation={selectedLocation} />
             </div>

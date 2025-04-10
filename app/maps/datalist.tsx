@@ -33,7 +33,7 @@ interface EmergencyData {
 
 interface DataListProps {
   locations: EmergencyData[];
-  onDataLoaded: (data: EmergencyData[]) => void;
+  // onDataLoaded: (data: EmergencyData[]) => void;
   onSelectLocation: (location: EmergencyData | null) => void;
 }
 
@@ -132,7 +132,7 @@ const DataList: React.FC<DataListProps> = ({ locations, onSelectLocation }) => {
                       className="hover:bg-gray-800 transition-colors duration-200 cursor-pointer" 
                       onClick={() => handlePostClick(location)}
                     >
-                      Post
+                      Posts
                     </Button>
                   </div>
                 </div>
