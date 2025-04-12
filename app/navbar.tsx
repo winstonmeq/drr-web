@@ -10,6 +10,7 @@ import {
   // FaSignOutAlt 
 } from "react-icons/fa";
 import AlertModal from "./alertModal"; // Import the modal component
+import ReportModal from "./reportModal"; // Import the modal component
 
 import {
   // SignedOut,
@@ -21,18 +22,18 @@ import Link from "next/link";
 
 
 
-
-
-
-
-
-
-
 const TacticalNavbar: React.FC = () => {
+
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isModalOpen2, setIsModalOpen2] = useState(false);
+
 
   const toggleModal = () => {
     setIsModalOpen(!isModalOpen);
+  };
+
+  const toggleModal2 = () => {
+    setIsModalOpen2(!isModalOpen2);
   };
 
   return (
@@ -78,13 +79,13 @@ const TacticalNavbar: React.FC = () => {
             </button>
 
 
-            <a
-              href="/brrmo"
+            <button
+              onClick={toggleModal2}
               className="flex items-center space-x-2 text-gray-300 hover:text-green-500 transition-colors duration-200"
             >
               <FaShieldAlt size={20} />
-              <span className="text-sm font-semibold uppercase">BRRMO</span>
-            </a>
+              <span className="text-sm font-semibold uppercase">Reports</span>
+            </button>
 
            
             <UserButton />
@@ -96,6 +97,7 @@ const TacticalNavbar: React.FC = () => {
 
       {/* Render the Modal */}
       {isModalOpen && <AlertModal onClose={toggleModal} />}
+      {isModalOpen2 && <ReportModal onClose={toggleModal2} />}
     </>
   );
 };
