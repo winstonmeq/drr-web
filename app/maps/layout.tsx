@@ -4,7 +4,8 @@
 
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
-import "./globals.css";
+import "../globals.css";
+import TacticalNavbar from "./navbar";
 import {
   ClerkProvider,
   // SignInButton,
@@ -25,8 +26,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "DRR Command Center",
-  description: "Incident Report and Disaster Alert Management System",
+  title: "MDRRMO President Roxas",
+  description: "Monitoring and Disaster Risk Reduction Management Office",
 };
 
 export default function RootLayout({
@@ -39,15 +40,17 @@ export default function RootLayout({
   return (
     <ClerkProvider>
 
-    <html lang="en">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
-          
+          <header className="flex justify-end items-center gap-4 h-16 ">
+            {/* <SignedOut>
+              <SignInButton />
+              <SignUpButton />
+            </SignedOut> */}
+            <SignedIn>
+              <TacticalNavbar />
+            </SignedIn>
+          </header>
 
         {children}
-      </body>
-    </html>
     </ClerkProvider>
 
   );
