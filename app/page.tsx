@@ -1,9 +1,8 @@
 import { auth } from '@clerk/nextjs/server';
 import { redirect } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { SignInButton } from '@clerk/nextjs';
-import { MapPin, AlertTriangle } from 'lucide-react'; // Icons for visual enhancement
+import { AlertTriangle } from 'lucide-react'; // Icons for visual enhancement
 
 export default async function Home() {
   const { userId } = await auth();
@@ -23,42 +22,6 @@ export default async function Home() {
         </h1>
           
       </section>
-
-      {/* Features Section */}
-      {/* <section className="py-16 px-6">
-        <div className="max-w-6xl mx-auto grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
-          <Card className="hover:shadow-lg transition-shadow duration-300">
-            <CardHeader>
-              <CardTitle className="text-xl font-semibold">Real-Time Alerts</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-gray-600">
-                Get instant notifications about earthquakes, floods, and other disasters in your area.
-              </p>
-            </CardContent>
-          </Card>
-          <Card className="hover:shadow-lg transition-shadow duration-300">
-            <CardHeader>
-              <CardTitle className="text-xl font-semibold">Incident Reporting</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-gray-600">
-                Report incidents directly to help authorities respond faster and save lives.
-              </p>
-            </CardContent>
-          </Card>
-          <Card className="hover:shadow-lg transition-shadow duration-300">
-            <CardHeader>
-              <CardTitle className="text-xl font-semibold">Location-Based Updates</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-gray-600">
-                Customize alerts based on your Province or Municipality for relevant information.
-              </p>
-            </CardContent>
-          </Card>
-        </div>
-      </section> */}
 
       {/* Call-to-Action Section */}
       <section className="py-16 px-6 text-center">
