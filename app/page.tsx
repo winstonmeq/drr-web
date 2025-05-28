@@ -18,14 +18,14 @@ export default async function Home() {
       <section className="relative flex flex-col items-center justify-center py-24 px-6 bg-gradient-to-b from-orange-900 to-gray-50 text-white text-center">
         <AlertTriangle className="w-16 h-16 mb-4 animate-pulse" />
         <h1 className="text-3xl sm:text-5xl font-extrabold leading-tight tracking-tight animate-pulse">
-          Q-ALERT: Real-Time Disaster Alerts
+          SuBIDA ALERT: Real-Time Disaster Alerts
         </h1>
           
       </section>
 
       {/* Call-to-Action Section */}
       <section className="py-16 px-6 text-center">
-        <h2 className="text-2xl sm:text-3xl font-bold mb-4">Join Q-ALERT Today</h2>
+        <h2 className="text-2xl sm:text-3xl font-bold mb-4">Join SuBIDA ALERT Today</h2>
         <p className="text-gray-600 mb-6 max-w-xl mx-auto">
           Sign in to access personalized disaster alerts and contribute to community safety.
         </p>

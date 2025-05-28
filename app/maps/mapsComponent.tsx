@@ -155,8 +155,8 @@ const MapPage: React.FC<{ locations: EmergencyData[]; selectedLocation: Emergenc
               gap: 8px;
               font-size: 14px;
             ">
-              <span style="font-weight: bold; color: #ffffff;">Purok:</span>
-              <span>${selectedLocation.purok}</span>
+              <span style="font-weight: bold; color: #ffffff;">Reported:</span>
+              <span>${selectedLocation.name}</span>
               <span style="font-weight: bold; color: #ffffff;">Barangay:</span>
               <span>${selectedLocation.barangay}</span>
               <span style="font-weight: bold; color: #ffffff;">Mobile:</span>

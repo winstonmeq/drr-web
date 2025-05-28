@@ -35,9 +35,9 @@ export default function RootLayout({
               <SignInButton />
               <SignUpButton />
             </SignedOut> */}
-            <SignedIn>
+            {/* <SignedIn> */}
               <TacticalNavbar />
-            </SignedIn>
+            {/* </SignedIn> */}
           </header>
 
         {children}

@@ -201,7 +201,7 @@ const PostModal: React.FC<PostModalProps> = ({ selectedLocation, onSelectLocatio
 
   {/* Purok and Municipality in one row */}
   <div className="flex space-x-4">
-    <div className="flex-1">
+    {/* <div className="flex-1">
       <label htmlFor="purok" className="block text-white mb-1">
         Purok
       </label>
@@ -216,7 +216,7 @@ const PostModal: React.FC<PostModalProps> = ({ selectedLocation, onSelectLocatio
         className="w-full p-2 bg-gray-700 text-white rounded border border-gray-600"
         disabled={isLoading}
       />
-    </div>
+    </div> */}
     <div className="flex-1">
       <label htmlFor="barangay" className="block text-white mb-1">
        Barangay
