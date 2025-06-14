@@ -8,7 +8,6 @@ interface EmergencyData {
   lat: string;
   long: string;
   mobile: string;
-  purok: string;
   barangay: string;
   name: string;
   position: string;
@@ -28,11 +27,10 @@ interface AlertModalProps {
 
 const AlertModal: React.FC<AlertModalProps> = ({ onClose }) => {
   const [formData, setFormData] = useState<EmergencyData>({
-    emergency: "blue", // Default to blue alert
+    emergency: "", // Default to blue alert
     lat: "7.1577",
     long: "125.0513",
     mobile: "09481234567",
-    purok: "none",
     barangay: "Poblacion",
     name: "MDRRMO",
     position: "Government",
@@ -165,7 +163,18 @@ const AlertModal: React.FC<AlertModalProps> = ({ onClose }) => {
             <label htmlFor="emergency" className="block text-white mb-1">
               Alert Type *
             </label>
-            <select
+             
+              <input
+                type="text"
+                id="emergency"
+                name="emergency"
+                value={formData.emergency}
+                onChange={handleInputChange}
+                placeholder="Emergency Type *"
+                className="w-full p-2 bg-gray-700 text-white rounded border border-gray-600"
+                disabled={isLoading}
+              />
+            {/* <select
               id="emergency"
               name="emergency" // Added name attribute to match formData
               value={formData.emergency}
@@ -174,8 +183,10 @@ const AlertModal: React.FC<AlertModalProps> = ({ onClose }) => {
               disabled={isLoading}
             >
               <option value="Blue Alert">Blue Alert</option>
-              <option value="Red Aler">Red Alert</option>
-            </select>
+              <option value="Red Alert">Red Alert</option>
+              <option value="Landslide">Landslide</option>
+
+            </select> */}
           </div>
 
           <div className="flex space-x-4">
@@ -195,24 +206,7 @@ const AlertModal: React.FC<AlertModalProps> = ({ onClose }) => {
               />
             </div>
             <div className="flex-1">
-              <label htmlFor="position" className="block text-white mb-1">
-                Occupation
-              </label>
-              <input
-                type="text"
-                id="position"
-                name="position"
-                value={formData.position}
-                onChange={handleInputChange}
-                placeholder="Position"
-                className="w-full p-2 bg-gray-700 text-white rounded border border-gray-600"
-                disabled={isLoading}
-              />
-            </div>
-          </div>
-
-          <div>
-            <label htmlFor="mobile" className="block text-white mb-1">
+             <label htmlFor="mobile" className="block text-white mb-1">
               Mobile Number
             </label>
             <input
@@ -225,25 +219,11 @@ const AlertModal: React.FC<AlertModalProps> = ({ onClose }) => {
               className="w-full p-2 bg-gray-700 text-white rounded border border-gray-600"
               disabled={isLoading}
             />
+            </div>
           </div>
 
           <div className="flex space-x-4">
-            <div className="flex-1">
-              <label htmlFor="purok" className="block text-white mb-1">
-                Purok
-              </label>
-              <input
-                type="text"
-                id="purok"
-                name="purok"
-                value={formData.purok}
-                onChange={handleInputChange}
-                placeholder="Purok"
-                className="w-full p-2 bg-gray-700 text-white rounded border border-gray-600"
-                disabled={isLoading}
-              />
-            </div>
-            <div className="flex-1">
+             <div className="flex-1">
               <label htmlFor="barangay" className="block text-white mb-1">
                 Barangay
               </label>

@@ -7,18 +7,13 @@ import {
   FaBell, 
   FaUser, 
   FaShieldAlt, 
-  // FaSignOutAlt 
+  FaSignOutAlt 
 } from "react-icons/fa";
 import AlertModal from "./alertModal"; // Import the modal component
 import ReportModal from "./reportModal"; // Import the modal component
+import { useRouter } from "next/navigation"; // Import useRouter for navigation 
 
-import {
-  // SignedOut,
-  UserButton,
-} from '@clerk/nextjs'
 import Link from "next/link";
-
-
 
 
 
@@ -26,7 +21,7 @@ const TacticalNavbar: React.FC = () => {
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isModalOpen2, setIsModalOpen2] = useState(false);
-
+ const router = useRouter(); // Initialize the router
 
   const toggleModal = () => {
     setIsModalOpen(!isModalOpen);
@@ -36,6 +31,14 @@ const TacticalNavbar: React.FC = () => {
     setIsModalOpen2(!isModalOpen2);
   };
 
+  
+  const Logout = async () => {
+    
+    localStorage.removeItem('authData'); // Clear auth data
+    router.push('/weblogin'); // Redirect to login page
+  }
+
+
   return (
     <>
       <nav className="bg-gray-900 text-white p-4 w-full shadow-lg border-b border-gray-700">
@@ -44,18 +47,18 @@ const TacticalNavbar: React.FC = () => {
           <div className="flex items-center space-x-3">
             <FaShieldAlt className="text-green-500" size={28} />
             <h1 className="text-xl font-bold uppercase tracking-wider">
-              MDRRMO Command
+              MDRRMO Command Center
             </h1>
           </div>
 
           {/* Navigation Links */}
           <div className="flex items-center space-x-6">
             <Link
-              href="/"
+              href="/dashboard"
               className="flex items-center space-x-2 text-gray-300 hover:text-green-500 transition-colors duration-200"
             >
               <FaHome size={20} />
-              <span className="text-sm font-semibold uppercase">Home</span>
+              <span className="text-sm font-semibold uppercase">Dashboard</span>
             </Link>
 
             
@@ -69,7 +72,7 @@ const TacticalNavbar: React.FC = () => {
 
             <button
               onClick={toggleModal}
-              className="flex items-center space-x-2 text-gray-300 hover:text-green-500 transition-colors duration-200 relative"
+              className="flex items-center space-x-2 text-gray-300 cursor-pointer hover:text-green-500 transition-colors duration-200 relative"
             >
               <FaBell size={20} />
               <span className="text-sm font-semibold uppercase">Alerts</span>
@@ -81,14 +84,21 @@ const TacticalNavbar: React.FC = () => {
 
             <button
               onClick={toggleModal2}
-              className="flex items-center space-x-2 text-gray-300 hover:text-green-500 transition-colors duration-200"
+              className="flex items-center space-x-2 text-gray-300 cursor-pointer hover:text-green-500 transition-colors duration-200"
             >
               <FaShieldAlt size={20} />
               <span className="text-sm font-semibold uppercase">Reports</span>
             </button>
 
+            <button
+              onClick={Logout}
+              className="flex items-center space-x-2 text-gray-300 cursor-pointer hover:text-green-500 transition-colors duration-200"
+            >
+              <FaSignOutAlt size={20} />
+              <span className="text-sm font-semibold uppercase">Logout</span>
+            </button>
+
            
-            <UserButton />
 
             
           </div>

@@ -13,14 +13,39 @@ if (!admin.apps.length) {
   });
 }
 ////Original code
+// export async function POST(req: Request) {
+//   try {
+//     const { token, topic } = await req.json();
+    
+//     if (!token || !topic) return NextResponse.json({ error: "Missing token or topic" }, { status: 400 });
+
+//     await admin.messaging().subscribeToTopic("cS5iK6wRAfrguhzeiMxt--:APA91bEcosCyRl8ZOcFCbwZls0cw2ov_ULTw5uNP8fZiHWyMSwi8PEB_85V0fawaEQsZvJb_6dW599V05-T8LVO8RHoa6ukH8TpftmCLWgywwZdbiNvEkZ4", "presroxascot2025");
+//     return NextResponse.json({ success: `Subscribed to ${topic}` });
+    
+//   } catch (error) {
+//     console.error("Error subscribing to topic:", error);
+//     return NextResponse.json({ error: "Failed to subscribe" }, { status: 500 });
+//   }
+// }
+
 export async function POST(req: Request) {
   try {
     const { token, topic } = await req.json();
-    
-    if (!token || !topic) return NextResponse.json({ error: "Missing token or topic" }, { status: 400 });
 
-    await admin.messaging().subscribeToTopic("cS5iK6wRAfrguhzeiMxt--:APA91bFDegM8ya78SYKNBw7xOprPttoQCY8XpvatdXo4-YMOY3u2MFamz5BlkYWq8G5AF4x7b-dI40hAyX5lA0enulAtyjfIbtJSXFHw-o5uSmW7Z4-TP_o", "presroxastoken2025");
-    return NextResponse.json({ success: `Subscribed to ${topic}` });
+    // Validate inputs
+    if (!token || !topic) {
+      return NextResponse.json({ error: "Missing token or topic" }, { status: 400 });
+    }
+
+    // Ensure topic is sanitized (FCM topics must match regex: [a-zA-Z0-9-_.~%]+)
+    const sanitizedTopic = topic.replace(/[^a-zA-Z0-9-_.~%]/g, "");
+    if (!sanitizedTopic) {
+      return NextResponse.json({ error: "Invalid topic format" }, { status: 400 });
+    }
+
+    // Subscribe the token to the specified topic
+    await admin.messaging().subscribeToTopic(token, sanitizedTopic);
+    return NextResponse.json({ success: `Subscribed to ${sanitizedTopic}` });
   } catch (error) {
     console.error("Error subscribing to topic:", error);
     return NextResponse.json({ error: "Failed to subscribe" }, { status: 500 });

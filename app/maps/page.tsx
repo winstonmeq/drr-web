@@ -4,7 +4,8 @@ import React, { useEffect, useState } from 'react';
 import MapComponent from './mapsComponent';
 import DataList from './datalist';
 import { messaging } from "../lib/firebase";
-import {onMessage } from "firebase/messaging";
+import { onMessage } from "firebase/messaging";
+import { useRouter } from 'next/navigation';
 
 interface EmergencyData {
     id: string;
@@ -16,88 +17,215 @@ interface EmergencyData {
     barangay: string;
     name: string;
     position: string;
-    photoURL:string;
-    situation:string;
-    munName:string;
-    status:boolean;
-    verified:boolean;
-    createdAt:string;
+    photoURL: string;
+    situation: string;
+    munName: string;
+    status: boolean;
+    verified: boolean;
+    createdAt: string;
 }
 
+interface UserData {
+    id: string;
+    email: string;
+    wname: string;
+    mobile: string;
+    createdAt: string;
+    updatedAt: string;
+    munId: string;
+    provId: string;
+}
+
+interface AuthData {
+    token: string;
+    user: UserData;
+}
+
+const LoadingComponent: React.FC = () => {
+    return (
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+            <div className="bg-white rounded-lg p-8 flex flex-col items-center shadow-xl">
+                <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-blue-500"></div>
+                <p className="mt-4 text-lg font-semibold text-gray-700">Loading Emergency Data...</p>
+                <p className="text-sm text-gray-500">Please wait a moment</p>
+            </div>
+        </div>
+    );
+};
+
+const Notification: React.FC<{
+    message: string;
+    onClose: () => void;
+}> = ({ message, onClose }) => {
+    return (
+        <div className="fixed top-4 right-10 z-50 max-w-md w-full bg-red-600 text-white rounded-lg shadow-2xl p-6 animate-slide-in">
+            <div className="flex justify-between items-center">
+                <h2 className="text-xl font-bold">Emergency Alert</h2>
+                <button 
+                    onClick={onClose}
+                    className="text-white hover:text-gray-200 focus:outline-none"
+                >
+                    ✕
+                </button>
+            </div>
+            <div className="mt-2">
+                <p className="text-sm">{message}</p>
+            </div>
+            <div className="mt-4 flex justify-end">
+                <button 
+                    onClick={onClose}
+                    className="bg-white text-red-600 px-4 py-2 rounded-md font-semibold hover:bg-gray-100"
+                >
+                    Dismiss
+                </button>
+            </div>
+        </div>
+    );
+};
+
+const TestAudioPopup: React.FC<{
+    onClose: () => void;
+}> = ({ onClose }) => {
+    return (
+        <div className="fixed inset-0 flex items-center justify-center z-50 bg-opacity-10">
+            <div className="bg-white rounded-lg shadow-2xl p-6 max-w-sm w-full">
+                <h2 className="text-xl font-bold mb-4">Sound Notification!</h2>
+                <div className="flex justify-center">
+                    <button
+                        onClick={onClose}
+                        className="bg-red-500 text-white px-4 py-2 rounded-md font-semibold hover:bg-red-600"
+                    >
+                        Close
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
+};
+
 const Page: React.FC = () => {
-    const [locations] = useState<EmergencyData[]>([]);
     const [selectedLocation, setSelectedLocation] = useState<EmergencyData | null>(null);
-  const [data, setData] = useState<EmergencyData[]>([]);
+    const [data, setData] = useState<EmergencyData[]>([]);
+    const [notification, setNotification] = useState<{ message: string; } | null>(null);
+    const [showTestAudioPopup, setShowTestAudioPopup] = useState(true);
+    const [lastPlayed, setLastPlayed] = useState<number>(0);
+    const [userData, setUserData] = useState<UserData | null>(null);
+    const [isLoading, setIsLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+    const router = useRouter();
 
+    const playNotificationSound = () => {
+        const now = Date.now();
+        if (now - lastPlayed < 1000) return;
+        const audio = new Audio('/sound/alarm2.wav');
+        audio.volume = 0.5;
+        audio.play().catch((error) => {
+            console.error('Error playing notification sound:', error);
+        });
+        setLastPlayed(now);
+    };
 
-    const fetchData = async () => {
+    const fetchData = async (munId: string, provId: string) => {
+        setIsLoading(true);
         try {
-          const res = await fetch('https://qalert.uniall.tk/api/emergency', { cache: 'no-store' });
-          const result = await res.json();
-  
-          console.log('API Response:', result.emergency_data); // Debug: Log the response
-  
-          setData(result.emergency_data);
-
+            const res = await fetch(
+                `${process.env.NEXT_PUBLIC_DOMAIN}/api/emergency?munId=${munId}&provId=${provId}`,
+                { cache: "no-store" }
+            );
+            const result = await res.json();
+            setData(result.emergency_data);
+            return result.emergency_data;
         } catch (error) {
-
-          console.error('Error fetching emergency data:', error);
-
-          setData([]); // Ensure data is always an array to prevent .map() errors
-
+            console.error("Error fetching emergency data:", error);
+            setError("Failed to load emergency data. Please try again.");
+            setData([]);
+            return [];
+        } finally {
+            setIsLoading(false);
         }
-      };
-
-
+    };
 
     useEffect(() => {
+        const token = localStorage.getItem("authData");
+        if (!token) {
+            setError("No token found. Please log in.");
+            setIsLoading(false);
+            router.push("/weblogin");
+            return;
+        }
 
-        fetchData();
+        const authData: AuthData = JSON.parse(token);
+        setUserData(authData.user);
 
-        // Listen for FCM messages
+        fetchData(authData.user.munId, authData.user.provId);
+
         messaging.then((msg) => {
-          if (msg) {
-            const unsubscribe = onMessage(msg, (payload) => {
-              console.log("FCM Message Received:", payload);
-              // Reload the page when a message is received
-              fetchData();
+            if (msg) {
+                const unsubscribe = onMessage(msg, async (payload) => {
+                    console.log("FCM Message Received:", payload);
+                    setNotification({
+                        message: payload.notification?.body || "No notification body available.",
+                    });
 
-              alert(payload.notification?.body || "No notification body available.");
+                    const newData = await fetchData(authData.user.munId, authData.user.provId);
+                    if (newData.length > 0) {
+                        setSelectedLocation(newData[0]);
+                    } else {
+                        setSelectedLocation(null);
+                    }
 
-         
-            });
-
-            // Cleanup the listener when the component unmounts
-            return () => {
-              unsubscribe();
-            };
-          }
+                    playNotificationSound();
+                });
+                return () => unsubscribe();
+            }
         }).catch((error) => {
-          console.error("Error initializing messaging:", error);
+            console.error("Error initializing messaging:", error);
         });
-      }, []);
+    }, []);
 
+    const closeNotification = () => {
+        setNotification(null);
+    };
 
+    const closeTestAudioPopup = () => {
+        setShowTestAudioPopup(false);
+    };
 
-   return (
+    return (
         <div className="flex h-screen bg-black-100">
-            {/* Left Sidebar - DataList */}
-            <div className="w-3/12 bg-white shadow-md overflow-y-auto">
-                <DataList 
-                // onDataLoaded={setLocations} 
-                onSelectLocation={setSelectedLocation} 
-                locations={data} />
-            </div>
-            {/* <div className="w-1/4 h-1/2 relative">
-            {selectedLocation && <GalleryPage selectedLocation={selectedLocation} />}
-
-            </div> */}
-
-            {/* Right Side - Map */}
-            <div className="flex w-11/12 h-screen relative">
-            
-                <MapComponent locations={locations} selectedLocation={selectedLocation} />
-            </div>
+            {isLoading && <LoadingComponent />}
+            {!isLoading && (
+                <>
+                    <div className="w-3/12 bg-white shadow-md overflow-y-auto">
+                        <DataList 
+                            onSelectLocation={setSelectedLocation} 
+                            locations={data} 
+                        />
+                    </div> 
+                    <div className="flex w-11/12 h-screen relative">
+                        <MapComponent 
+                            locations={data} 
+                            selectedLocation={selectedLocation} 
+                        />
+                    </div>
+                    {notification && (
+                        <Notification 
+                            message={notification.message} 
+                            onClose={closeNotification} 
+                        />
+                    )}
+                    {showTestAudioPopup && (
+                        <TestAudioPopup 
+                            onClose={closeTestAudioPopup} 
+                        />
+                    )}
+                    {error && (
+                        <div className="fixed bottom-4 right-4 bg-red-500 text-white p-4 rounded-lg">
+                            {error}
+                        </div>
+                    )}
+                </>
+            )}
         </div>
     );
 };

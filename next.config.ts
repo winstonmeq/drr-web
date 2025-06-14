@@ -18,6 +18,13 @@ const nextConfig: NextConfig = {
         port: "",
         pathname: "/**", // Allow all paths under this hostname
       },
+        {
+        protocol: "https",
+        hostname: "placehold.co", // Existing domain
+        port: "",
+        pathname: "/**", // Allow all paths under this hostname
+      },
+    
     ],
   },
   

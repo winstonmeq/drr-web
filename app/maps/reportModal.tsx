@@ -19,10 +19,8 @@ interface EmergencyData {
   lat: string;
   long: string;
   mobile: string;
-  purok: string;
   barangay: string;
   name: string;
-  position: string;
   photoURL: string;
   status: boolean;
   verified: boolean;
@@ -71,7 +69,7 @@ const ReportModal: React.FC<ReportModalProps> = ({ onClose }) => {
   const fetchEmergency = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await fetch("https://qalert.uniall.tk/api/emergency", {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_DOMAIN}/api/emergency`, {
         cache: "no-store",
       });
       const result = await res.json();
@@ -129,28 +127,53 @@ const ReportModal: React.FC<ReportModalProps> = ({ onClose }) => {
     }
   };
 
+
+  // Add this function to generate the narrative
+const generateNarrative = (data: EmergencyData[], startDate: string, endDate: string) => {
+  const totalEmergencies = data.length;
+  const emergencyTypes = [...new Set(data.map(item => item.emergency))];
+  const activeEmergencies = data.filter(item => item.status).length;
+  const inactiveEmergencies = totalEmergencies - activeEmergencies;
+  const barangays = [...new Set(data.map(item => item.barangay))];
+
+  const narrative = `
+    <h2>Emergency Incident Report Summary</h2>
+    <p>This report covers emergency incidents reported in the Municipality of President Roxas from <strong>${startDate}</strong> to <strong>${endDate}</strong>.</p>
+    <p><strong>Total Incidents:</strong> ${totalEmergencies}</p>
+    <p><strong>Emergency Types:</strong> ${emergencyTypes.join(", ")}</p>
+    <p><strong>Active Incidents:</strong> ${activeEmergencies} (${((activeEmergencies / totalEmergencies) * 100).toFixed(1)}%)</p>
+    <p><strong>Inactive Incidents:</strong> ${inactiveEmergencies} (${((inactiveEmergencies / totalEmergencies) * 100).toFixed(1)}%)</p>
+    <p><strong>Affected Barangays:</strong> ${barangays.join(", ")}</p>
+    <p>The following table provides detailed information on each reported incident, including the type of emergency, the name of the reporting individual, location details, date, status, and contact information.</p>
+  `;
+  
+  return narrative;
+};
+
   const handlePrint = () => {
     const printContent = document.createElement("div");
     printContent.innerHTML = `
-      <html>
-        <head>
-          <title>Print Report</title>
-          <style>
-            @page { size: A4; margin: 10mm; }
-            body { font-family: Arial, sans-serif; text-align: center; width: 800px; margin: auto; }
-            h1 { font-size: 16px; margin-bottom: 5px; }
-            h2 { font-size: 14px; margin-bottom: 15px; }
-            table { width: 100%; border-collapse: collapse; }
-            th, td { border: 1px solid black; padding: 8px; text-align: left; }
-            th { background-color: #f2f2f2; }
-          </style>
-        </head>
-        <body>
-          <h1>MDRRMO of President Roxas</h1>
-          <h2>Incidents Reports for the Month of ${startDate} - ${endDate}</h2>
-          ${tableRef.current?.innerHTML}
-        </body>
-      </html>
+     <html>
+      <head>
+        <title>Emergency Incident Report</title>
+        <style>
+          @page { size: A4; margin: 10mm; }
+          body { font-family: Arial, sans-serif; text-align: left; width: 800px; margin: auto; }
+          h1 { font-size: 18px; text-align: center; margin-bottom: 10px; }
+          h2 { font-size: 16px; text-align: center; margin-bottom: 10px; }
+          p { font-size: 12px; margin-bottom: 10px; }
+          table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+          th, td { border: 1px solid black; padding: 8px; text-align: left; font-size: 12px; }
+          th { background-color: #f2f2f2; }
+        </style>
+      </head>
+      <body>
+        <h1>MDRRMO of President Roxas</h1>
+        <h2>Incidents Report for ${startDate} to ${endDate}</h2>
+        ${generateNarrative(paginatedData, startDate, endDate)}
+        ${tableRef.current?.innerHTML}
+      </body>
+    </html>
     `;
 
     const printWindow = document.createElement("iframe");
@@ -247,8 +270,7 @@ const ReportModal: React.FC<ReportModalProps> = ({ onClose }) => {
                     <TableHead>#</TableHead>
                     <TableHead>Emergency</TableHead>
                     <TableHead>Name</TableHead>
-                    <TableHead>Purok</TableHead>
-                    <TableHead>Barangay</TableHead>
+                    <TableHead>Address</TableHead>
                     <TableHead>Date</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead>Mobile</TableHead>
@@ -260,7 +282,6 @@ const ReportModal: React.FC<ReportModalProps> = ({ onClose }) => {
                       <TableCell>{startIndex + index + 1}</TableCell>
                       <TableCell>{item.emergency}</TableCell>
                       <TableCell>{item.name}</TableCell>
-                      <TableCell>{item.purok}</TableCell>
                       <TableCell>{item.barangay}</TableCell>
                       <TableCell>
                         {new Date(item.createdAt).toLocaleDateString()}

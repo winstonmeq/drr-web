@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { FaTimes } from "react-icons/fa";
+import {polygons } from './polygon';
+
 
 
 interface EmergencyData {
@@ -27,9 +29,32 @@ interface PostModalProps {
 }
 
 
-// const { emergency, lat, long, purok, barangay,munName, name, mobile, position, photoURL, situation, munId, provId } =
+function isPointInPolygon(point: { lat: number; long: number }, polygon: { lat: number; long: number }[]) {
+  let inside = false;
+  const { lat, long } = point;
+
+  for (let i = 0, j = polygon.length - 1; i < polygon.length; j = i++) {
+    const xi = polygon[i].lat, yi = polygon[i].long;
+    const xj = polygon[j].lat, yj = polygon[j].long;
+
+    const intersect =
+      yi > long !== yj > long &&
+      lat < ((xj - xi) * (long - yi)) / (yj - yi + 0.0000001) + xi;
+
+    if (intersect) inside = !inside;
+  }
+
+  return inside;
+}
+
+
 
 const PostModal: React.FC<PostModalProps> = ({ selectedLocation, onSelectLocation, onClose }) => {
+
+    const [isLoading, setIsLoading] = useState(false);
+  const [IncidentLoc, setIncidentLoc] = useState('');
+
+
   const [formData, setFormData] = useState<EmergencyData>(
     selectedLocation || {
       id:"",
@@ -38,7 +63,7 @@ const PostModal: React.FC<PostModalProps> = ({ selectedLocation, onSelectLocatio
       long: "",
       mobile: "",
       purok: "",
-      barangay: "",
+      barangay: IncidentLoc,
       name: "",
       position: "",
       photoURL: "",
@@ -50,14 +75,33 @@ const PostModal: React.FC<PostModalProps> = ({ selectedLocation, onSelectLocatio
     }
   );
   
-  const [isLoading, setIsLoading] = useState(false);
+
+  
 
   // Update form data when selectedLocation changes
   useEffect(() => {
     if (selectedLocation) {
       setFormData(selectedLocation);
+      getStatusFromCoordinates(parseFloat(selectedLocation.lat),parseFloat(selectedLocation.long))
     }
   }, [selectedLocation]);
+
+
+    // Function to compute status based on coordinates and polygons
+  const getStatusFromCoordinates = (lat: number, long: number) => {
+    if (isNaN(lat) || isNaN(long)) {
+      return 'Enter valid coordinates';
+    }
+  
+    const point = { lat, long };
+    const matched = polygons.filter((poly) => isPointInPolygon(point, poly.points));
+  
+    if (matched.length > 0) {
+      return setIncidentLoc(matched.map((poly) => poly.name).join(', '));
+    }
+    return setIncidentLoc('unknown location');
+  };
+  
 
 
 
@@ -78,16 +122,22 @@ const PostModal: React.FC<PostModalProps> = ({ selectedLocation, onSelectLocatio
     setIsLoading(true);
 
     try {
+
+        const updatedFormData = {
+        ...formData,
+        barangay: IncidentLoc
+      };
+
+      
       const response = await fetch("/api/posts", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(updatedFormData),
       });
 
-      console.log(formData);
-      console.log(response);
+      console.log(updatedFormData);
 
       if (response.ok) {
         console.log("Emergency posted successfully");
@@ -140,9 +190,29 @@ const PostModal: React.FC<PostModalProps> = ({ selectedLocation, onSelectLocatio
       value={formData.emergency}
       onChange={handleInputChange}
       placeholder="Emergency Type *"
-      className="w-full p-2 bg-gray-700 text-white rounded border border-gray-600"
+      className="w-full p-2 bg-gray-700 text-red-500 rounded border border-gray-600"
       disabled={isLoading}
     />
+  </div>
+
+  {/* Purok and Municipality in one row */}
+  <div className="flex space-x-4">
+      <div className="flex-1">
+      <label htmlFor="barangay" className="block text-white mb-1">
+       Incident Location
+      </label>
+      <input
+        type="text"
+      id="barangay"
+      name="barangay"
+       value={IncidentLoc} 
+        readOnly 
+        onChange={handleInputChange}
+        placeholder="Incident"
+        className="w-full p-2 bg-gray-700 text-red-500 rounded border border-gray-600"
+        disabled={isLoading}
+      />
+    </div>
   </div>
 
 
@@ -164,26 +234,7 @@ const PostModal: React.FC<PostModalProps> = ({ selectedLocation, onSelectLocatio
     />
     </div>
     <div className="flex-1">
-      <label htmlFor="barangay" className="block text-white mb-1">
-       Occupation
-      </label>
-      <input
-      type="text"
-      id="position"
-      name="position"
-      readOnly
-      value={formData.position}
-      onChange={handleInputChange}
-      placeholder="Position"
-      className="w-full p-2 bg-gray-700 text-white rounded border border-gray-600"
-      disabled={isLoading}
-    />
-    </div>
-  </div>
-
-  {/* Mobile Number */}
-  <div>
-    <label htmlFor="mobile" className="block text-white mb-1">
+     <label htmlFor="mobile" className="block text-white mb-1">
       Mobile Number
     </label>
     <input
@@ -197,79 +248,12 @@ const PostModal: React.FC<PostModalProps> = ({ selectedLocation, onSelectLocatio
       className="w-full p-2 bg-gray-700 text-white rounded border border-gray-600"
       disabled={isLoading}
     />
-  </div>
-
-  {/* Purok and Municipality in one row */}
-  <div className="flex space-x-4">
-    {/* <div className="flex-1">
-      <label htmlFor="purok" className="block text-white mb-1">
-        Purok
-      </label>
-      <input
-        type="text"
-        id="purok"
-        name="purok"
-        readOnly
-        value={formData.purok}
-        onChange={handleInputChange}
-        placeholder="Purok"
-        className="w-full p-2 bg-gray-700 text-white rounded border border-gray-600"
-        disabled={isLoading}
-      />
-    </div> */}
-    <div className="flex-1">
-      <label htmlFor="barangay" className="block text-white mb-1">
-       Barangay
-      </label>
-      <input
-        type="text"
-        id="barangay"
-        name="barangay"
-        readOnly
-        value={formData.barangay}
-        onChange={handleInputChange}
-        placeholder="Municipality"
-        className="w-full p-2 bg-gray-700 text-white rounded border border-gray-600"
-        disabled={isLoading}
-      />
     </div>
   </div>
 
-  {/* Name */}
-  {/* <div>
-    <label htmlFor="name" className="block text-white mb-1">
-      Name
-    </label>
-    <input
-      type="text"
-      id="name"
-      name="name"
-      value={formData.name}
-      onChange={handleInputChange}
-      placeholder="Name"
-      className="w-full p-2 bg-gray-700 text-white rounded border border-gray-600"
-      disabled={isLoading}
-    />
-  </div> */}
+ 
+  
 
-  {/* Position */}
-  {/* <div>
-    <label htmlFor="position" className="block text-white mb-1">
-      Position
-    </label>
-    <input
-      type="text"
-      id="position"
-      name="position"
-      value={formData.position}
-      onChange={handleInputChange}
-      placeholder="Position"
-      className="w-full p-2 bg-gray-700 text-white rounded border border-gray-600"
-      disabled={isLoading}
-    />
-  </div> */}
-
-  {/* Situation */}
   <div>
     <label htmlFor="situation" className="block text-white mb-1">
       Situation

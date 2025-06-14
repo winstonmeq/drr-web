@@ -9,9 +9,11 @@ import {
   FaMountain,
   FaExclamationTriangle,
 } from "react-icons/fa";
-// import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import PostModal from "./postModal";
+import IncLocModal from "./IncLocModal";
+import { polygons } from './polygon';
+
 
 interface EmergencyData {
   id: string;
@@ -33,28 +35,82 @@ interface EmergencyData {
 
 interface DataListProps {
   locations: EmergencyData[];
-  // onDataLoaded: (data: EmergencyData[]) => void;
   onSelectLocation: (location: EmergencyData | null) => void;
 }
 
+
+
+
+
+function isPointInPolygon(point: { lat: number; long: number }, polygon: { lat: number; long: number }[]) {
+  let inside = false;
+  const { lat, long } = point;
+
+  for (let i = 0, j = polygon.length - 1; i < polygon.length; j = i++) {
+    const xi = polygon[i].lat, yi = polygon[i].long;
+    const xj = polygon[j].lat, yj = polygon[j].long;
+
+    const intersect =
+      yi > long !== yj > long &&
+      lat < ((xj - xi) * (long - yi)) / (yj - yi + 0.0000001) + xi;
+
+    if (intersect) inside = !inside;
+  }
+
+  return inside;
+}
+
+
+  // Function to compute status based on coordinates and polygons
+const getStatusFromCoordinates = (lat: number, long: number): string => {
+  if (isNaN(lat) || isNaN(long)) {
+    return 'Enter valid coordinates';
+  }
+
+  const point = { lat, long };
+  const matched = polygons.filter((poly) => isPointInPolygon(point, poly.points));
+
+  if (matched.length > 0) {
+    return matched.map((poly) => poly.name).join(', ');
+  }
+  return 'unknown location';
+};
+
 const DataList: React.FC<DataListProps> = ({ locations, onSelectLocation }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isModalOpen2, setIsModalOpen2] = useState(false);
   const [selectedLocation, setSelectedLocation] = useState<EmergencyData | null>(null);
-  
-  const toggleModal = () => {
-    
+  const [selectedItemId, setSelectedItemId] = useState<string | null>(null);
+
+  const toggleModal = () => {    
     setIsModalOpen(!isModalOpen);
   };
 
-  // New function to handle post click and clear selected location
-  const handlePostClick = (location: EmergencyData) => {
-    // Clear the selected location by passing null or undefined
-    onSelectLocation(null); // Using 'as any' to bypass strict typing temporarily
+  const toggleModal2 = () => {    
+    setIsModalOpen2(!isModalOpen2);
+  };
+
+  const handlePostClick = (event: React.MouseEvent, location: EmergencyData) => {
+    event.stopPropagation(); // Prevent click from bubbling to parent
+    onSelectLocation(null);
     setSelectedLocation(location);
+    setSelectedItemId(location.id);
     toggleModal();
   };
-    
-  // Function to get appropriate icon based on emergency type
+
+  const handleLocationIncident = (location: EmergencyData) => {
+    onSelectLocation(null); 
+    setSelectedLocation(location);
+    setSelectedItemId(location.id);
+    toggleModal2();
+  };
+
+  const handleMapClick = (event: React.MouseEvent, location: EmergencyData) => {
+    event.stopPropagation(); // Prevent click from bubbling to parent
+    onSelectLocation(location);
+    setSelectedItemId(location.id);
+  };
+
   const getEmergencyIcon = (emergency: string) => {
     const type = emergency.toLowerCase();
     switch (type) {
@@ -62,7 +118,7 @@ const DataList: React.FC<DataListProps> = ({ locations, onSelectLocation }) => {
         return <FaFire className="text-red-600" size={24} />;
       case "ambulance":
       case "medical":
-        return <FaAmbulance className="text-blue-500" size={24} />;
+        return <FaAmbulance className="text-orange-700" size={24} />;
       case "flood":
         return <FaWater className="text-blue-400" size={24} />;
       case "landslide":
@@ -82,15 +138,17 @@ const DataList: React.FC<DataListProps> = ({ locations, onSelectLocation }) => {
           NO ACTIVE EMERGENCIES DETECTED
         </div>
       ) : (
-        <div className="space-y-4 ">
+        <div className="space-y-4">
           {locations.map((location) => (
             <div
               key={location.id}
-              className="border-l-4 border-red-600 rounded-xl "
+              className={`border-l-4 border-red-600 rounded-xl ${
+                selectedItemId === location.id ? 'bg-gray-700' : ''
+              }`}
             >
-              <div className="bg-gray-800 rounded-lg p-4 hover:bg-gray-700 transition-colors duration-200 border border-gray-600 ">
-                <div className="flex items-center space-x-4 ">
-                  <div className="flex-1">
+              <div className=" rounded-lg p-4 hover:bg-gray-700 transition-colors duration-200 border border-gray-600">
+                <div className="flex items-center space-x-4">
+                  <div onClick={() => handleLocationIncident(location)} className="flex-1 cursor-pointer">
                     <div className="flex items-center justify-start">
                       <div className="flex-shrink-0">
                         {getEmergencyIcon(location.emergency)}
@@ -99,15 +157,14 @@ const DataList: React.FC<DataListProps> = ({ locations, onSelectLocation }) => {
                         {location.emergency}
                       </h3>
                     </div>
+                      <p className="text-sm text-gray-300 mt-1">
+                      Location: <span className=" font-bold text-red-700">{getStatusFromCoordinates(parseFloat(location.lat), parseFloat(location.long))}</span> 
+                    </p>
                     <p className="text-sm text-gray-300 mt-1">
-                      CONTACT: {location.name}
+                      Sender: {location.name}
                     </p>
                     <div className="mt-1 text-sm text-gray-400">
-                      <p>
-                        LOCATION: {location.purok}, {location.barangay}
-                      </p>
-                      <p>MOBILE: {location.mobile}</p>
-                      {/* <p>MOBILE: {location.photoURL}</p> */}
+                      <p>Mobile: {location.mobile}</p>
                     </div>
                     <div className="mt-2 flex items-center space-x-2">
                       {location.verified && (
@@ -123,14 +180,19 @@ const DataList: React.FC<DataListProps> = ({ locations, onSelectLocation }) => {
 
                   <div className="flex flex-col justify-center items-center gap-3">
                     <Button 
-                      className="hover:bg-gray-800 transition-colors duration-200 cursor-pointer" 
-                      onClick={() => onSelectLocation(location)}
+                      className={`hover:bg-gray-800 transition-colors duration-200 cursor-pointer ${
+                        selectedItemId === location.id ? 'bg-green-800' : ''
+                      }`} 
+                      onClick={(e) => handleMapClick(e, location)}
                     >
                       Maps
                     </Button>
+
                     <Button 
-                      className="hover:bg-gray-800 transition-colors duration-200 cursor-pointer" 
-                      onClick={() => handlePostClick(location)}
+                      className={`hover:bg-gray-800 transition-colors duration-200 cursor-pointer ${
+                        selectedItemId === location.id ? 'bg-green-800' : ''
+                      }`} 
+                      onClick={(e) => handlePostClick(e, location)}
                     >
                       Posts
                     </Button>
@@ -145,6 +207,12 @@ const DataList: React.FC<DataListProps> = ({ locations, onSelectLocation }) => {
           selectedLocation={selectedLocation}
           onSelectLocation={onSelectLocation}
           onClose={toggleModal}
+        />}
+
+        {isModalOpen2 && <IncLocModal 
+          selectedLocation={selectedLocation}
+          onSelectLocation={onSelectLocation}
+          onClose={toggleModal2}
         />}
     </div>
   );

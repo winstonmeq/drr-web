@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useState, useCallback } from 'react';
-import Image from 'next/image';
+import { polygons } from './polygon';
 
 interface EmergencyData {
   id: string;
@@ -17,6 +17,24 @@ interface EmergencyData {
   status: boolean;
   verified: boolean;
   createdAt: string;
+}
+
+function isPointInPolygon(point: { lat: number; long: number }, polygon: { lat: number; long: number }[]) {
+  let inside = false;
+  const { lat, long } = point;
+
+  for (let i = 0, j = polygon.length - 1; i < polygon.length; j = i++) {
+    const xi = polygon[i].lat, yi = polygon[i].long;
+    const xj = polygon[j].lat, yj = polygon[j].long;
+
+    const intersect =
+      yi > long !== yj > long &&
+      lat < ((xj - xi) * (long - yi)) / (yj - yi + 0.0000001) + xi;
+
+    if (intersect) inside = !inside;
+  }
+
+  return inside;
 }
 
 const MapPage: React.FC<{ locations: EmergencyData[]; selectedLocation: EmergencyData | null }> = ({
@@ -60,37 +78,105 @@ const MapPage: React.FC<{ locations: EmergencyData[]; selectedLocation: Emergenc
 
           const { Map } = (await google.maps.importLibrary('maps')) as google.maps.MapsLibrary;
 
-          const center = { lat: 7.1577, lng: 125.0513 };
+          const center = { lat: 7.1397, lng: 125.0553 };
 
           const mapOptions = {
-             center,
-            zoom: 12,
+            center,
+            zoom: 13,
             mapId: 'e442539727ad5d7e',
-            mapTypeId: 'satellite',
-            scrollwheel: true, // Specifically disables mouse wheel zooming (older property)
+            mapTypeId: 'hybrid',
+            scrollwheel: true,
           };
 
           const mapElement = document.getElementById('map');
+
           if (mapElement) {
+
             const newMap = new Map(mapElement, mapOptions);
 
-            // Update the map state
             setMap(newMap);
 
-            const { AdvancedMarkerElement } = (await google.maps.importLibrary(
-              'marker'
-            )) as google.maps.MarkerLibrary;
+            // Fetch polygon data
+            try {
+              const response = await fetch(`${process.env.NEXT_PUBLIC_DOMAIN}/api/polygons`, {
+                method: 'GET',
+                headers: {
+                  'Content-Type': 'application/json',
+                },
+                cache: 'no-store',
+              });
 
-            new AdvancedMarkerElement({
-              position: center,
-              map: newMap,
-              title: 'MDRRM Office',
-            });
+              if (!response.ok) {
+                console.error('Failed to fetch polygon data:', response.statusText);
+                return;
+              }
+
+              const polygonsData = await response.json();
+
+              console.log('Polygons Data:', polygonsData);
+
+              // Draw Barangay Polygons
+              polygonsData.forEach((poly: { name: string; points: { lat: number; long: number }[]; province: { provinceName: string } }) => {
+                // Map points to Google Maps format: swap lat and long
+                const paths = poly.points.map((point) => ({
+                  lat: point.long, // API's 'long' is latitude
+                  lng: point.lat,  // API's 'lat' is longitude
+                }));
+
+                console.log(`Drawing polygon for ${poly.name} with paths:`, paths);
+
+                const polygon = new google.maps.Polygon({
+                  paths,
+                  strokeColor: '#9ACD32',
+                  strokeOpacity: 0.8,
+                  strokeWeight: 2,
+                  fillColor: '#FF0000',
+                  fillOpacity: 0.35, // Increased opacity for visibility
+                  map: newMap,
+                });
+
+                const infoWindow = new google.maps.InfoWindow({
+                  content: `
+                    <div>
+                      <strong>Barangay:</strong> ${poly.name}<br>
+                    </div>
+                  `,
+                });
+
+                polygon.addListener('click', (event: google.maps.MapMouseEvent) => {
+                  infoWindow.setPosition(event.latLng);
+                  infoWindow.open(newMap);
+                });
+              });
+            } catch (error) {
+              console.error('Error fetching or rendering polygons:', error);
+            }
           }
         }
       }, 100);
     }
   }, [isScriptLoaded]);
+
+  
+
+  // Function to compute status based on coordinates and polygons
+  const getStatusFromCoordinates = (lat: number, long: number): string => {
+    if (isNaN(lat) || isNaN(long)) {
+      return 'Enter valid coordinates';
+    }
+
+    const point = { lat, long };
+    const matched = polygons.filter((poly) => isPointInPolygon(point, poly.points));
+
+    if (matched.length > 0) {
+      return matched.map((poly) => poly.name).join(', ');
+    }
+    return 'unknown location';
+  };
+
+
+
+
 
   // Function to clear all markers, wrapped in useCallback
   const clearMarkers = useCallback(() => {
@@ -130,6 +216,10 @@ const MapPage: React.FC<{ locations: EmergencyData[]; selectedLocation: Emergenc
         // Store the new marker in the state
         setMarkers((prevMarkers) => [...prevMarkers, newMarker]);
 
+        const lat = parseFloat(selectedLocation.lat);
+        const long = parseFloat(selectedLocation.long);
+        const currentStatus = getStatusFromCoordinates(lat, long);
+
         const infoWindowContent = `
           <div style="
             background-color: #1c1c1c;
@@ -145,7 +235,7 @@ const MapPage: React.FC<{ locations: EmergencyData[]; selectedLocation: Emergenc
             <h3 style="
               margin: 0 0 10px;
               font-size: 18px;
-              color: #4caf50;
+              color: #FF0000;
               text-transform: uppercase;
               font-weight: bold;
             ">${selectedLocation.emergency}</h3>
@@ -155,10 +245,10 @@ const MapPage: React.FC<{ locations: EmergencyData[]; selectedLocation: Emergenc
               gap: 8px;
               font-size: 14px;
             ">
-              <span style="font-weight: bold; color: #ffffff;">Reported:</span>
+              <span style="font-weight: bold; color: #ffffff;">Location:</span>
+              <span style="font-weight: bold; color: #FF0000;">${currentStatus}</span>
+              <span style="font-weight: bold; color: #ffffff;">Sender:</span>
               <span>${selectedLocation.name}</span>
-              <span style="font-weight: bold; color: #ffffff;">Barangay:</span>
-              <span>${selectedLocation.barangay}</span>
               <span style="font-weight: bold; color: #ffffff;">Mobile:</span>
               <span>${selectedLocation.mobile}</span>
               <span style="font-weight: bold; color: #ffffff;">Coordinate:</span>
@@ -183,72 +273,27 @@ const MapPage: React.FC<{ locations: EmergencyData[]; selectedLocation: Emergenc
         });
 
         // Add click listener to marker
-        newMarker.addListener('click', () => {
+        newMarker.addListener('gmp-click', () => {
           infoWindow.open({
             anchor: newMarker,
             map: map,
           });
         });
 
-        const newInfoWindow = new google.maps.InfoWindow({
-          content: infoWindowContent,
-        });
-
         // Open the InfoWindow on the marker
-        newInfoWindow.open(map, newMarker);
+        infoWindow.open(map, newMarker);
 
         // Store the InfoWindow in the state
-        setInfoWindow(newInfoWindow);
+        setInfoWindow(infoWindow);
       }
     };
 
     updateMap();
-  }, [map, selectedLocation]); // Dependencies are stable now
+  }, [map, selectedLocation]);
 
   return (
     <div style={{ height: '100vh', width: '100%' }}>
       <div id="map" style={{ height: '100%', width: '100%' }} />
-
-      {selectedLocation?.emergency ? (
-        <div
-          style={{
-            position: 'absolute',
-            bottom: '70px',
-            left: '10px',
-            backgroundColor: 'rgba(255, 255, 255, 0.8)', // Transparent background
-            padding: '10px',
-            borderRadius: '5px',
-            boxShadow: '0 2px 5px rgba(0, 0, 0, 0.2)',
-            zIndex: 1000,
-          }}
-        >
-          <p>
-            <strong>Emergency:</strong> {selectedLocation?.emergency}
-          </p>
-          <p>
-            <strong>Name:</strong> {selectedLocation?.name}
-          </p>
-          <p>
-            <strong>Barangay:</strong> {selectedLocation?.purok}, {selectedLocation?.barangay}
-          </p>
-          <Image
-            src={selectedLocation?.photoURL || '/no-image.png'}
-            alt="Location"
-            width={200}
-            height={200}
-          />
-          <p>
-            <strong>Status:</strong> {selectedLocation?.status ? 'Yes' : 'No'}
-          </p>
-          <p>
-            <strong>Verified:</strong> {selectedLocation?.verified ? 'Yes' : 'No'}
-          </p>
-          <p>
-            <strong>Created At:</strong>{' '}
-            {selectedLocation?.createdAt ? new Date(selectedLocation.createdAt).toLocaleString() : 'N/A'}
-          </p>
-        </div>
-      ) : null}
     </div>
   );
 };

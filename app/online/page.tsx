@@ -3,10 +3,55 @@
 import { useEffect, useState } from "react";
 import { messaging } from "../lib/firebase";
 import { getToken, onMessage } from "firebase/messaging";
+import { useRouter } from "next/navigation";
+import { Button } from "@/components/ui/button";
+import Link from "next/link";
+
+interface UserData {
+  id: string;
+  email: string;
+  wname: string;
+  mobile: string;
+  createdAt: string;
+  updatedAt: string;
+  munId: string;
+  provId: string;
+}
+
+interface AuthData {
+  token: string;
+  user: UserData;
+}
 
 export default function NotificationPage() {
   const [fcmToken, setFcmToken] = useState<string | null>(null);
   const [notification, setNotification] = useState<{ title: string; body: string } | null>(null);
+  const [userData, setUserData] = useState<UserData | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const router = useRouter();
+
+  // Function to play a simple notification sound
+  const playNotificationSound = () => {
+    try {
+      const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+      const oscillator = audioContext.createOscillator();
+      const gainNode = audioContext.createGain();
+
+      oscillator.type = 'sine'; // Sine wave for a soft tone
+      oscillator.frequency.setValueAtTime(440, audioContext.currentTime); // A4 note
+      gainNode.gain.setValueAtTime(0.1, audioContext.currentTime); // Low volume
+      gainNode.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 0.5); // Fade out
+
+      oscillator.connect(gainNode);
+      gainNode.connect(audioContext.destination);
+
+      oscillator.start();
+      oscillator.stop(audioContext.currentTime + 0.5); // Play for 0.5 seconds
+    } catch (error) {
+      console.error("Error playing notification sound:", error);
+    }
+  };
 
   useEffect(() => {
     async function registerServiceWorker() {
@@ -20,6 +65,20 @@ export default function NotificationPage() {
       }
     }
 
+    const token = localStorage.getItem("authData");
+    if (!token) {
+      setError("No token found. Please log in.");
+      setIsLoading(false);
+      router.push("/weblogin");
+      return;
+    }
+
+    const authData: AuthData = JSON.parse(token);
+    setUserData(authData.user); // Set user data from authData
+    console.log("User Data:", authData.user);
+
+
+    
     async function requestPermission() {
       const permission = await Notification.requestPermission();
       if (permission !== "granted") {
@@ -34,39 +93,17 @@ export default function NotificationPage() {
         if (!msg) return;
 
         const token = await getToken(msg, {
-          vapidKey: "BJJNXKRFuphmpQMcXlswRKrT4EeTx6Z1K9WVRbgNuF4CVMK7TRwyP59bq3nWE1vjGafqJIH4-3g2oadA9dAPol0"
+          vapidKey:
+            "BJJNXKRFuphmpQMcXlswRKrT4EeTx6Z1K9WVRbgNuF4CVMK7TRwyP59bq3nWE1vjGafqJIH4-3g2oadA9dAPol0",
         });
 
         if (token) {
           setFcmToken(token);
-          console.log("FCM Token:", token);
-          await subscribeToTopic(token, "presroxastoken2025") // Subscribe to "alerts" topic
         } else {
           console.log("No registration token available.");
         }
       } catch (error) {
         console.error("Token retrieval failed:", error);
-      }
-    }
-
-    async function subscribeToTopic(token: string, topic: string) {
-      try {
-        const response = await fetch("/api/subscribe", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ token, topic }),
-        });
-
-        const data = await response.json();
-        if (response.ok) {
-          console.log(`Successfully subscribed to topic: ${topic}`);
-        } else {
-          console.error("Failed to subscribe to topic", data);
-        }
-      } catch (error) {
-        console.error("Error subscribing to topic:", error);
       }
     }
 
@@ -89,19 +126,54 @@ export default function NotificationPage() {
       requestPermission();
       listenForMessages();
     });
-  }, []);
+  }, []); // Empty dependency array for initial setup
+
+  // New useEffect to handle topic subscription after userData and fcmToken are set
+  useEffect(() => {
+    async function subscribeToTopic(token: string, topic: string) {
+      try {
+        const response = await fetch("/api/subscribe", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ token, topic }),
+        });
+
+        const data = await response.json();
+        if (response.ok) {
+          console.log(`Successfully subscribed to topic: ${topic}`);
+        } else {
+          console.error("Failed to subscribe to topic", data);
+        }
+      } catch (error) {
+        console.error("Error subscribing to topic:", error);
+      }
+    }
+
+    if (fcmToken && userData?.munId) {
+      subscribeToTopic(fcmToken, userData.munId);
+    } else if (userData && !userData.munId) {
+      console.error("munId is undefined, cannot subscribe to topic.");
+    }
+  }, [fcmToken, userData]); // Runs when fcmToken or userData changes
 
   return (
-    <div>
-      <h1>Firebase Push Notifications</h1>
-      {fcmToken ? <p>FCM Token: {fcmToken}</p> : <p>Requesting Permission...</p>}
-      {notification && (
-        <div>
-          <h2>New Notification:</h2>
-          <p><strong>Title:</strong> {notification.title}</p>
-          <p><strong>Body:</strong> {notification.body}</p>
+    <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-b from-gray-50 to-gray-200">
+      <div className="w-full max-w-md p-6 bg-white shadow-xl rounded-2xl transform transition-all duration-300 hover:shadow-2xl">
+        <div className="text-center">
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">Welcome, {userData?.wname || 'User'}!</h1>
+          <p className="text-lg text-gray-600 mb-6">Access your Command Center to get started.</p>
+          <Link href={`/maps?munId=${userData?.munId}&provId=${userData?.provId}`}>
+            <Button
+              onClick={playNotificationSound}
+              className="w-full px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-colors duration-200 hover:shadow-md"
+            >
+              Enter Command Center
+            </Button>
+          </Link>
         </div>
-      )}
+      </div>
     </div>
   );
 }
