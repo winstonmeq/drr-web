@@ -1,7 +1,7 @@
 'use client'
 
 import moment from "moment";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   FaFire,
   FaAmbulance,
@@ -12,7 +12,6 @@ import {
 import { Button } from "@/components/ui/button";
 import PostModal from "./postModal";
 import IncLocModal from "./IncLocModal";
-import { polygons } from './polygon';
 
 interface EmergencyData {
   id: string;
@@ -37,43 +36,14 @@ interface DataListProps {
   onSelectLocation: (location: EmergencyData | null) => void;
 }
 
-function isPointInPolygon(point: { lat: number; long: number }, polygon: { lat: number; long: number }[]) {
-  let inside = false;
-  const { lat, long } = point;
 
-  for (let i = 0, j = polygon.length - 1; i < polygon.length; j = i++) {
-    const xi = polygon[i].lat, yi = polygon[i].long;
-    const xj = polygon[j].lat, yj = polygon[j].long;
-
-    const intersect =
-      yi > long !== yj > long &&
-      lat < ((xj - xi) * (long - yi)) / (yj - yi + 0.0000001) + xi;
-
-    if (intersect) inside = !inside;
-  }
-
-  return inside;
-}
-
-const getStatusFromCoordinates = (lat: number, long: number): string => {
-  if (isNaN(lat) || isNaN(long)) {
-    return 'Enter valid coordinates';
-  }
-
-  const point = { lat, long };
-  const matched = polygons.filter((poly) => isPointInPolygon(point, poly.points));
-
-  if (matched.length > 0) {
-    return matched.map((poly) => poly.name).join(', ');
-  }
-  return 'unknown location';
-};
 
 const DataList: React.FC<DataListProps> = ({ locations, onSelectLocation }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isModalOpen2, setIsModalOpen2] = useState(false);
   const [selectedLocation, setSelectedLocation] = useState<EmergencyData | null>(null);
   const [selectedItemId, setSelectedItemId] = useState<string | null>(null);
+  const [locationNames, setLocationNames] = useState<{ [key: string]: string | null }>({});
 
   const toggleModal = () => {    
     setIsModalOpen(!isModalOpen);
@@ -121,8 +91,50 @@ const DataList: React.FC<DataListProps> = ({ locations, onSelectLocation }) => {
     }
   };
 
+
+    const fetchLocationName = async (lat: number, long: number) => {
+    const LocNameGPS = { lat, long };
+    try {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_DOMAIN}/api/places`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(LocNameGPS),
+      });
+
+      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+
+      const statusData = await response.json();
+
+      console.log('Location name status', statusData);
+      
+      const locationName = statusData.current?.[0]?.name || 'Unknown Location';
+      return locationName;
+    } catch (err) {
+      console.error('Error location name', err);
+      return null;
+    }
+  };
+
+// Fetch location names when locations change
+  useEffect(() => {
+    const fetchAllLocationNames = async () => {
+      const newLocationNames: { [key: string]: string | null } = {};
+      for (const location of locations) {
+        if (!locationNames[location.id]) {
+          const name = await fetchLocationName(parseFloat(location.lat), parseFloat(location.long));
+          newLocationNames[location.id] = name;
+          console.log(name)
+        }
+      }
+      setLocationNames((prev) => ({ ...prev, ...newLocationNames }));
+    };
+
+    fetchAllLocationNames();
+  }, [locations]);
+
+
   return (
-    <div className="w-full max-w-4xl mx-auto p-4 sm:p-6 bg-gray-900 min-h-screen">
+    <div className="w-full max-w-4xl mx-auto p-4 sm:p-6 bg-gray-800 min-h-screen">
       <h2 className="text-xl sm:text-2xl font-bold text-white mb-4 tracking-wider uppercase pb-2">
         Emergency Reports
       </h2>
@@ -151,7 +163,7 @@ const DataList: React.FC<DataListProps> = ({ locations, onSelectLocation }) => {
                       </h3>
                     </div>
                     <p className="text-xs sm:text-sm text-gray-300 mt-2">
-                      Location: <span className="font-bold text-red-700">{getStatusFromCoordinates(parseFloat(location.lat), parseFloat(location.long))}</span> 
+                      Location: <span className="font-bold text-red-700">{locationNames[location.id] || 'Loading...'}</span> 
                     </p>
                     <p className="text-xs sm:text-sm text-gray-300 mt-1">
                       Sender: {location.name}
@@ -173,7 +185,7 @@ const DataList: React.FC<DataListProps> = ({ locations, onSelectLocation }) => {
 
                   <div className="flex flex-row sm:flex-col justify-center items-center gap-3">
                     <Button 
-                      className={`w-full sm:w-auto hover:bg-gray-800 transition-colors duration-200 cursor-pointer text-xs sm:text-sm ${
+                      className={`w-full sm:w-auto hover:bg-gray-600 transition-colors duration-200 cursor-pointer text-xs sm:text-sm ${
                         selectedItemId === location.id ? 'bg-green-800' : ''
                       }`} 
                       onClick={(e) => handleMapClick(e, location)}
@@ -204,7 +216,6 @@ const DataList: React.FC<DataListProps> = ({ locations, onSelectLocation }) => {
 
         {isModalOpen2 && <IncLocModal 
           selectedLocation={selectedLocation}
-          onSelectLocation={onSelectLocation}
           onClose={toggleModal2}
         />}
     </div>
@@ -212,3 +223,4 @@ const DataList: React.FC<DataListProps> = ({ locations, onSelectLocation }) => {
 };
 
 export default DataList;
+

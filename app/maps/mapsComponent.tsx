@@ -83,7 +83,7 @@ const MapPage: React.FC<{ munId: string, provId: string, lat: string, long: stri
 
             setMap(newMap);
 
-            // Fetch polygons boundaries
+            // Fetch polygons for barangay boundaries
             try {
               const response = await fetch(`${process.env.NEXT_PUBLIC_DOMAIN}/api/polygons?munId=${munId}&provId=${provId}`, {
                 method: 'GET',
@@ -300,7 +300,7 @@ const MapPage: React.FC<{ munId: string, provId: string, lat: string, long: stri
     };
 
     updateMap();
-  }, [map, selectedLocation]); // Added clearMarkers to dependencies
+  }, [map, selectedLocation, lat,long, munId, provId]); // Added clearMarkers to dependencies
 
   return (
     <div style={{ height: '100vh', width: '100%' }}>

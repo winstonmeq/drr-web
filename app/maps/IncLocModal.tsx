@@ -1,13 +1,12 @@
 import React, { useState, useEffect } from "react";
 import { FaTimes } from "react-icons/fa";
-import {polygons } from './polygon';
 import Image from "next/image";
 
 interface EmergencyData {
   id: string;
   emergency: string;
-  lat: string;
-  long: string;
+  lat: string; // Can be parsed as a number
+  long: string; // Can be parsed as a number
   mobile: string;
   purok: string;
   barangay: string;
@@ -23,26 +22,7 @@ interface EmergencyData {
 
 interface IncLocModalProps {
   selectedLocation: EmergencyData | null;
-  onSelectLocation: (location: EmergencyData) => void;
   onClose: () => void;
-}
-
-function isPointInPolygon(point: { lat: number; long: number }, polygon: { lat: number; long: number }[]) {
-  let inside = false;
-  const { lat, long } = point;
-
-  for (let i = 0, j = polygon.length - 1; i < polygon.length; j = i++) {
-    const xi = polygon[i].lat, yi = polygon[i].long;
-    const xj = polygon[j].lat, yj = polygon[j].long;
-
-    const intersect =
-      yi > long !== yj > long &&
-      lat < ((xj - xi) * (long - yi)) / (yj - yi + 0.0000001) + xi;
-
-    if (intersect) inside = !inside;
-  }
-
-  return inside;
 }
 
 const IncLocModal: React.FC<IncLocModalProps> = ({ selectedLocation, onClose }) => {
@@ -67,48 +47,57 @@ const IncLocModal: React.FC<IncLocModalProps> = ({ selectedLocation, onClose }) 
   );
 
   const [isLoading] = useState(false);
-  const [status, setStatus] = useState('');
+  const [locationName, setLocationName] = useState<string | null>(null);
 
-  const checkPoint = () => {
-    const lat = parseFloat(formData.lat);
-    const long = parseFloat(formData.long);
-    if (isNaN(lat) || isNaN(long)) {
-      setStatus('Enter valid coordinates');
-      return;
+  const fetchLocationName = async (lat: number, long: number): Promise<string | null> => {
+    if (!process.env.NEXT_PUBLIC_DOMAIN) {
+      console.error("NEXT_PUBLIC_DOMAIN is not defined");
+      return null;
     }
 
-    const point = { lat, long };
+    const LocNameGPS = { lat, long };
+    try {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_DOMAIN}/api/places`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(LocNameGPS),
+      });
 
-    const matched = polygons.filter(poly => isPointInPolygon(point, poly.points));
+      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
 
-    if (matched.length > 0) {
-      const polygonNames = matched.map(poly => poly.name).join(', ');
-      setStatus(`${polygonNames}`);
-    } else {
-      setStatus('unknown location');
+      const statusData = await response.json();
+      const name = statusData.current?.[0]?.name || "Unknown Location";
+      return name;
+    } catch (err) {
+      console.error("Error fetching location name", err);
+      return null;
     }
   };
- 
+
+  // Fetch location name when selectedLocation changes
+  useEffect(() => {
+    const fetchLocation = async () => {
+      if (selectedLocation && selectedLocation.lat && selectedLocation.long) {
+        const lat = parseFloat(selectedLocation.lat);
+        const long = parseFloat(selectedLocation.long);
+        if (!isNaN(lat) && !isNaN(long)) {
+          const name = await fetchLocationName(lat, long);
+          setLocationName(name);
+        } else {
+          setLocationName("Invalid Coordinates");
+        }
+      }
+    };
+
+    fetchLocation();
+  }, [selectedLocation]);
+
   // Update form data when selectedLocation changes
   useEffect(() => {
     if (selectedLocation) {
       setFormData(selectedLocation);
-      checkPoint();
     }
-  }, [selectedLocation, checkPoint]);
-  
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-  };
-
-
-  
-  
+  }, [selectedLocation]);
 
   return (
     <div
@@ -143,73 +132,66 @@ const IncLocModal: React.FC<IncLocModalProps> = ({ selectedLocation, onClose }) 
               name="emergency"
               readOnly
               value={formData.emergency}
-              onChange={handleInputChange}
               placeholder="Emergency Type *"
               className="w-full p-2 bg-gray-700 text-red-500 rounded border border-gray-600"
               disabled={isLoading}
             />
           </div>
-        
 
-          {/* Purok and Municipality in one row */}
-          <div className="flex space-x-4">
-            <div className="flex-1">
-              <label htmlFor="barangay" className="block text-white mb-1">
-                Incident Location
-              </label>
-              <input
-                type="text"
-                id="barangay"
-                name="barangay"
-                readOnly
-                value={status}
-                onChange={handleInputChange}
-                placeholder="Municipality"
-                className="w-full p-2 bg-gray-700 text-red-500 rounded border border-gray-600"
-                disabled={isLoading}
-              />
-            </div>
+          {/* Incident Location */}
+          <div>
+            <label htmlFor="location" className="block text-white mb-1">
+              Incident Location
+            </label>
+            <input
+              type="text"
+              id="location"
+              name="location"
+              readOnly
+              value={locationName || "Loading..."}
+              placeholder="Incident Location"
+              className="w-full p-2 bg-gray-700 text-red-500 rounded border border-gray-600"
+              disabled={isLoading}
+            />
           </div>
 
-            <div>
+          {/* Incident Photo */}
+          <div>
             <Image
               src={formData.photoURL || "/images/no-image.png"}
               alt="Incident Photo"
               width={300}
               height={300}
               className="w-full max-h-64 object-cover rounded mb-2"
-              // Add priority if the image is critical for initial load
               priority={true}
-              // Optionally handle errors
-              // onError={(e) => {
-              //   console.error("Image failed to load:", formData.photoURL);
-              //   e.currentTarget.src = "/images/no-image.png"; // Fallback on error
-              // }}
+              onError={(e) => {
+                console.error("Image failed to load:", formData.photoURL);
+                e.currentTarget.src = "/images/no-image.png";
+              }}
             />
           </div>
-          
 
-        {/* Horizontal Line */}
-          <div className="w-full border-b-red-500 border-solid border-1"></div>
+          {/* Horizontal Line */}
+          <div className="w-full border-b border-red-500"></div>
 
+          {/* Sender and Mobile Number */}
           <div className="flex space-x-4">
             <div className="flex-1">
               <label htmlFor="name" className="block text-white mb-1">
-                Sender:
+                Sender
               </label>
               <input
                 type="text"
                 id="name"
                 name="name"
-                value={formData.name}
                 readOnly
-                onChange={handleInputChange}
+                value={formData.name}
                 placeholder="Name"
                 className="w-full p-2 bg-gray-700 text-white rounded border border-gray-600"
                 disabled={isLoading}
               />
             </div>
-            <div>
+            <div className="flex-1">
               <label htmlFor="mobile" className="block text-white mb-1">
                 Mobile Number
               </label>
@@ -219,31 +201,28 @@ const IncLocModal: React.FC<IncLocModalProps> = ({ selectedLocation, onClose }) 
                 name="mobile"
                 readOnly
                 value={formData.mobile}
-                onChange={handleInputChange}
                 placeholder="Mobile Number"
                 className="w-full p-2 bg-gray-700 text-white rounded border border-gray-600"
                 disabled={isLoading}
               />
             </div>
           </div>
-             <div className="flex space-x-4">
-            <div className="flex-1">
-              <label htmlFor="name" className="block text-white mb-1">
-                Address:
-              </label>
-              <input
-                type="text"
-                id="name"
-                name="name"
-                value={formData.barangay}
-                readOnly
-                onChange={handleInputChange}
-                placeholder="Name"
-                className="w-full p-2 bg-gray-700 text-white rounded border border-gray-600"
-                disabled={isLoading}
-              />
-            </div>
-           
+
+          {/* Address */}
+          <div>
+            <label htmlFor="barangay" className="block text-white mb-1">
+              Address
+            </label>
+            <input
+              type="text"
+              id="barangay"
+              name="barangay"
+              readOnly
+              value={formData.barangay}
+              placeholder="Address"
+              className="w-full p-2 bg-gray-700 text-white rounded border border-gray-600"
+              disabled={isLoading}
+            />
           </div>
         </div>
 
