@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useState, useCallback } from 'react';
-import { polygons } from './polygon';
+// import { polygons } from './polygon';
 
 interface EmergencyData {
   id: string;
@@ -19,25 +19,11 @@ interface EmergencyData {
   createdAt: string;
 }
 
-function isPointInPolygon(point: { lat: number; long: number }, polygon: { lat: number; long: number }[]) {
-  let inside = false;
-  const { lat, long } = point;
-
-  for (let i = 0, j = polygon.length - 1; i < polygon.length; j = i++) {
-    const xi = polygon[i].lat, yi = polygon[i].long;
-    const xj = polygon[j].lat, yj = polygon[j].long;
-
-    const intersect =
-      yi > long !== yj > long &&
-      lat < ((xj - xi) * (long - yi)) / (yj - yi + 0.0000001) + xi;
-
-    if (intersect) inside = !inside;
-  }
-
-  return inside;
-}
-
-const MapPage: React.FC<{ locations: EmergencyData[]; selectedLocation: EmergencyData | null }> = ({
+const MapPage: React.FC<{ munId: string, provId: string, lat: string, long: string, locations: EmergencyData[]; selectedLocation: EmergencyData | null }> = ({
+  munId,
+  provId,
+  lat,
+  long,
   selectedLocation,
 }) => {
   const [isScriptLoaded, setIsScriptLoaded] = useState(false);
@@ -78,7 +64,9 @@ const MapPage: React.FC<{ locations: EmergencyData[]; selectedLocation: Emergenc
 
           const { Map } = (await google.maps.importLibrary('maps')) as google.maps.MapsLibrary;
 
-          const center = { lat: 7.1397, lng: 125.0553 };
+          // const center = { lat: 7.1397, lng: 125.0553 };
+          const center = { lat: parseFloat(lat), lng: parseFloat(long) };
+
 
           const mapOptions = {
             center,
@@ -91,14 +79,13 @@ const MapPage: React.FC<{ locations: EmergencyData[]; selectedLocation: Emergenc
           const mapElement = document.getElementById('map');
 
           if (mapElement) {
-
             const newMap = new Map(mapElement, mapOptions);
 
             setMap(newMap);
 
-            // Fetch polygon data
+            // Fetch polygons boundaries
             try {
-              const response = await fetch(`${process.env.NEXT_PUBLIC_DOMAIN}/api/polygons`, {
+              const response = await fetch(`${process.env.NEXT_PUBLIC_DOMAIN}/api/polygons?munId=${munId}&provId=${provId}`, {
                 method: 'GET',
                 headers: {
                   'Content-Type': 'application/json',
@@ -131,7 +118,7 @@ const MapPage: React.FC<{ locations: EmergencyData[]; selectedLocation: Emergenc
                   strokeOpacity: 0.8,
                   strokeWeight: 2,
                   fillColor: '#FF0000',
-                  fillOpacity: 0.35, // Increased opacity for visibility
+                  fillOpacity: 0.35,
                   map: newMap,
                 });
 
@@ -157,26 +144,43 @@ const MapPage: React.FC<{ locations: EmergencyData[]; selectedLocation: Emergenc
     }
   }, [isScriptLoaded]);
 
-  
+  const fetchLocationName = async (lat: number, long: number) => {
+    const LocNameGPS = { lat, long };
+    try {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_DOMAIN}/api/places`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(LocNameGPS),
+      });
 
-  // Function to compute status based on coordinates and polygons
-  const getStatusFromCoordinates = (lat: number, long: number): string => {
-    if (isNaN(lat) || isNaN(long)) {
-      return 'Enter valid coordinates';
+      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+
+      const statusData = await response.json();
+
+      console.log('Location name status', statusData);
+
+      return statusData;
+    } catch (err) {
+      console.error('Error location name', err);
+      return null;
     }
-
-    const point = { lat, long };
-    const matched = polygons.filter((poly) => isPointInPolygon(point, poly.points));
-
-    if (matched.length > 0) {
-      return matched.map((poly) => poly.name).join(', ');
-    }
-    return 'unknown location';
   };
 
-
-
-
+  const getStatus = async (lat: number, long: number) => {
+    try {
+      const result = await fetchLocationName(lat, long);
+      if (!result) {
+        console.log('No result returned');
+        return null;
+      }
+      const currentStatus = result; // Access the 'status' field
+      console.log('Current Status:', currentStatus); // Logs "Poblacion"
+      return currentStatus;
+    } catch (err) {
+      console.error('Error getting status:', err);
+      return null;
+    }
+  };
 
   // Function to clear all markers, wrapped in useCallback
   const clearMarkers = useCallback(() => {
@@ -218,7 +222,10 @@ const MapPage: React.FC<{ locations: EmergencyData[]; selectedLocation: Emergenc
 
         const lat = parseFloat(selectedLocation.lat);
         const long = parseFloat(selectedLocation.long);
-        const currentStatus = getStatusFromCoordinates(lat, long);
+        const currentStatus = await getStatus(lat, long); // Await the async call
+
+        // Fallback to a default value if currentStatus is null
+        // const displayStatus = currentStatus.current.name || 'errorLocation';
 
         const infoWindowContent = `
           <div style="
@@ -229,7 +236,7 @@ const MapPage: React.FC<{ locations: EmergencyData[]; selectedLocation: Emergenc
             border-radius: 8px;
             border: 2px solid #4caf50;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
-            max-width: 300px;
+            max-width: 400px;
             line-height: 1.4;
           ">
             <h3 style="
@@ -246,7 +253,11 @@ const MapPage: React.FC<{ locations: EmergencyData[]; selectedLocation: Emergenc
               font-size: 14px;
             ">
               <span style="font-weight: bold; color: #ffffff;">Location:</span>
-              <span style="font-weight: bold; color: #FF0000;">${currentStatus}</span>
+              <span style="font-weight: bold; color: #FF0000;">${currentStatus.current.length >= 1 ? currentStatus.current[0].name : "Unknown Location"}</span>
+                 <span style="font-weight: bold; color: #87ceeb;">NearBy: 200m:</span>
+              <span style="font-weight: bold; color: #87ceeb;">${currentStatus.nearby200.length >= 1 ? currentStatus.nearby200[0].name : "no data"}</span>
+                 <span style="font-weight: bold; color: #ffff00;">NearBy: 500m:</span>
+              <span style="font-weight: bold; color: #ffff00;">${currentStatus.nearby500.length >= 1 ? currentStatus.nearby500[0].name : "no data"}</span>
               <span style="font-weight: bold; color: #ffffff;">Sender:</span>
               <span>${selectedLocation.name}</span>
               <span style="font-weight: bold; color: #ffffff;">Mobile:</span>
@@ -262,7 +273,7 @@ const MapPage: React.FC<{ locations: EmergencyData[]; selectedLocation: Emergenc
                 font-size: 12px;
                 color: #b0bec5;
                 font-style: italic;
-              ">Tactical Report</span>
+              ">Incident Report</span>
             </div>
           </div>
         `;
@@ -289,7 +300,7 @@ const MapPage: React.FC<{ locations: EmergencyData[]; selectedLocation: Emergenc
     };
 
     updateMap();
-  }, [map, selectedLocation]);
+  }, [map, selectedLocation]); // Added clearMarkers to dependencies
 
   return (
     <div style={{ height: '100vh', width: '100%' }}>

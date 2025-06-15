@@ -29,6 +29,8 @@ interface UserData {
     id: string;
     email: string;
     wname: string;
+    lat:string;
+    long:string;
     mobile: string;
     createdAt: string;
     updatedAt: string;
@@ -205,7 +207,7 @@ const Page: React.FC = () => {
                     <div className="flex w-11/12 h-screen relative">
                         <MapComponent 
                             locations={data} 
-                            selectedLocation={selectedLocation} 
+                            selectedLocation={selectedLocation} munId={userData?.munId ?? ''} provId={userData?.provId ?? ''} lat={userData?.lat ?? ''} long={userData?.long ?? ''}
                         />
                     </div>
                     {notification && (

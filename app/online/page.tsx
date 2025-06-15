@@ -12,6 +12,7 @@ interface UserData {
   email: string;
   wname: string;
   mobile: string;
+  mapCenter:string;
   createdAt: string;
   updatedAt: string;
   munId: string;
@@ -25,33 +26,37 @@ interface AuthData {
 
 export default function NotificationPage() {
   const [fcmToken, setFcmToken] = useState<string | null>(null);
-  const [notification, setNotification] = useState<{ title: string; body: string } | null>(null);
+  const [, setNotification] = useState<{ title: string; body: string } | null>(null);
   const [userData, setUserData] = useState<UserData | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [, setIsLoading] = useState(true);
+  const [, setError] = useState<string | null>(null);
   const router = useRouter();
 
   // Function to play a simple notification sound
-  const playNotificationSound = () => {
-    try {
-      const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
-      const oscillator = audioContext.createOscillator();
-      const gainNode = audioContext.createGain();
+ // Function to play a simple notification sound
+const playNotificationSound = () => {
+  try {
+    const AudioContextClass =
+      window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
 
-      oscillator.type = 'sine'; // Sine wave for a soft tone
-      oscillator.frequency.setValueAtTime(440, audioContext.currentTime); // A4 note
-      gainNode.gain.setValueAtTime(0.1, audioContext.currentTime); // Low volume
-      gainNode.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 0.5); // Fade out
+    const audioContext = new AudioContextClass();
+    const oscillator = audioContext.createOscillator();
+    const gainNode = audioContext.createGain();
 
-      oscillator.connect(gainNode);
-      gainNode.connect(audioContext.destination);
+    oscillator.type = 'sine'; // Sine wave for a soft tone
+    oscillator.frequency.setValueAtTime(440, audioContext.currentTime); // A4 note
+    gainNode.gain.setValueAtTime(0.1, audioContext.currentTime); // Low volume
+    gainNode.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 0.5); // Fade out
 
-      oscillator.start();
-      oscillator.stop(audioContext.currentTime + 0.5); // Play for 0.5 seconds
-    } catch (error) {
-      console.error("Error playing notification sound:", error);
-    }
-  };
+    oscillator.connect(gainNode);
+    gainNode.connect(audioContext.destination);
+
+    oscillator.start();
+    oscillator.stop(audioContext.currentTime + 0.5); // Play for 0.5 seconds
+  } catch (error) {
+    console.error("Error playing notification sound:", error);
+  }
+};
 
   useEffect(() => {
     async function registerServiceWorker() {
@@ -75,7 +80,7 @@ export default function NotificationPage() {
 
     const authData: AuthData = JSON.parse(token);
     setUserData(authData.user); // Set user data from authData
-    console.log("User Data:", authData.user);
+    // console.log("User Data:", authData.user);
 
 
     
