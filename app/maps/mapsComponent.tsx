@@ -106,8 +106,8 @@ const MapPage: React.FC<{ munId: string, provId: string, lat: string, long: stri
               polygonsData.forEach((poly: { name: string; points: { lat: number; long: number }[]; province: { provinceName: string } }) => {
                 // Map points to Google Maps format: swap lat and long
                 const paths = poly.points.map((point) => ({
-                  lat: point.long, // API's 'long' is latitude
-                  lng: point.lat,  // API's 'lat' is longitude
+                  lat: point.lat, // API's 'long' is latitude
+                  lng: point.long,  // API's 'lat' is longitude
                 }));
 
                 console.log(`Drawing polygon for ${poly.name} with paths:`, paths);
