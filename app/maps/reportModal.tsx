@@ -31,6 +31,23 @@ interface EmergencyData {
   provId: string;
 }
 
+interface UserData {
+  id: string;
+  email: string;
+  wname: string;
+  mobile: string;
+  mapCenter:string;
+  createdAt: string;
+  updatedAt: string;
+  munId: string;
+  provId: string;
+}
+
+interface AuthData {
+  token: string;
+  user: UserData;
+}
+
 interface ReportModalProps {
   onClose: () => void;
 }
@@ -39,6 +56,8 @@ const ReportModal: React.FC<ReportModalProps> = ({ onClose }) => {
   const [data, setData] = useState<EmergencyData[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [userData, setUserData] = useState<UserData | null>(null);
+  
   const [startDate, setStartDate] = useState(
     new Date().toISOString().split("T")[0]
   );
@@ -66,10 +85,10 @@ const ReportModal: React.FC<ReportModalProps> = ({ onClose }) => {
     };
   }, [onClose]);
 
-  const fetchEmergency = useCallback(async () => {
+  const fetchEmergency = useCallback(async (munId:string, provId: string) => {
     setLoading(true);
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_DOMAIN}/api/emergency`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_DOMAIN}/api/emergency?munId=${munId}&provId=${provId}`, {
         cache: "no-store",
       });
       const result = await res.json();
@@ -87,45 +106,82 @@ const ReportModal: React.FC<ReportModalProps> = ({ onClose }) => {
   }, []);
 
   useEffect(() => {
-    fetchEmergency();
+
+ const token = localStorage.getItem("authData");
+        if (!token) {
+            setError("No token found. Please log in.");          
+            return;
+        }
+
+        const authData: AuthData = JSON.parse(token);
+        setUserData(authData.user); // Set user data from authData
+
+    fetchEmergency(authData.user.munId, authData.user.provId);
   }, [fetchEmergency]);
 
   const handlePageChange = (newPage: number) => {
     setCurrentPage(newPage);
   };
 
-  const handleFilter = async () => {
-    setLoading(true);
-    try {
-      const formattedStartDate = startDate
-        ? startDate.toString().split("T")[0]
-        : undefined;
-      const formattedEndDate = endDate
-        ? endDate.toString().split("T")[0]
-        : undefined;
+ const handleFilter = async (munId?: string, provId?: string, startDate?: Date, endDate?: Date) => {
+  setLoading(true);
+  setError(null); // Reset error state on new request
+  try {
+    // Format dates safely
+    const formattedStartDate = startDate && !isNaN(startDate.getTime())
+      ? startDate.toISOString().split("T")[0]
+      : undefined;
+    const formattedEndDate = endDate && !isNaN(endDate.getTime())
+      ? endDate.toISOString().split("T")[0]
+      : undefined;
 
-      const response = await fetch(
-        `https://qalert.uniall.tk/api/emergency?startDate=${formattedStartDate}&endDate=${formattedEndDate}`,
-        {
-          cache: "no-store",
-        }
-      );
-      if (response.ok) {
-        const result = await response.json();
-        setData(result.emergency_data);
-        setFilteredPatients(result.emergency_data);
-        setTotalPages(Math.ceil(result.emergency_data.length / rowsPerPage));
-      } else {
-        console.error("Failed to fetch patients");
-        setError("Failed to fetch patients");
+    // Build query parameters, omitting undefined values
+    const queryParams = new URLSearchParams();
+    if (munId) queryParams.append("munId", munId);
+    if (provId) queryParams.append("provId", provId);
+    if (formattedStartDate) queryParams.append("startDate", formattedStartDate);
+    if (formattedEndDate) queryParams.append("endDate", formattedEndDate);
+
+    const baseUrl = process.env.NEXT_PUBLIC_DOMAIN || "http://localhost:3000"; // Fallback URL
+    const response = await fetch(
+      `${baseUrl}/api/emergency?${queryParams.toString()}`,
+      {
+        cache: "no-store",
       }
-    } catch (error) {
-      console.error("Error fetching patients:", error);
-      setError("Failed to load patients.");
-    } finally {
-      setLoading(false);
+    );
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`Failed to fetch patients: ${response.status} ${errorText}`);
     }
-  };
+
+    const result = await response.json();
+    setData(result.emergency_data);
+    setFilteredPatients(result.emergency_data);
+    setTotalPages(Math.ceil(result.totalRecords / rowsPerPage)); // Use totalRecords from backend
+
+    return result; // Optional: return result for further processing if needed
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : "Failed to load patients.";
+    console.error("Error fetching patients:", error);
+    setError(errorMessage);
+  } finally {
+    setLoading(false);
+  }
+};
+
+const handleFilter2 = async () => {
+  if (userData?.munId && userData?.provId) {
+    await handleFilter(
+      userData.munId,
+      userData.provId,
+      new Date(startDate),
+      new Date(endDate)
+    );
+  } else {
+    setError("User data is missing municipality or province ID.");
+  }
+};
 
 
   // Add this function to generate the narrative
@@ -168,7 +224,7 @@ const generateNarrative = (data: EmergencyData[], startDate: string, endDate: st
         </style>
       </head>
       <body>
-        <h1>MDRRMO of President Roxas</h1>
+        <h1>MDRRMO</h1>
         <h2>Incidents Report for ${startDate} to ${endDate}</h2>
         ${generateNarrative(paginatedData, startDate, endDate)}
         ${tableRef.current?.innerHTML}
@@ -259,7 +315,7 @@ const generateNarrative = (data: EmergencyData[], startDate: string, endDate: st
                 />
               </div>
               <div className="flex gap-4 mt-4">
-                <Button onClick={handleFilter}>Filter</Button>
+                <Button onClick={handleFilter2}>Filter</Button>
                 <Button onClick={handlePrint}>Print</Button>
               </div>
             </div>

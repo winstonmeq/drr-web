@@ -156,9 +156,10 @@ const playNotificationSound = () => {
       }
     }
 
-    if (fcmToken && userData?.munId) {
-      subscribeToTopic(fcmToken, userData.munId);
-    } else if (userData && !userData.munId) {
+    if (fcmToken && userData?.wname) {
+      subscribeToTopic(fcmToken, userData?.wname);
+      console.log(fcmToken, userData?.wname)
+    } else if (userData && !userData.wname) {
       console.error("munId is undefined, cannot subscribe to topic.");
     }
   }, [fcmToken, userData]); // Runs when fcmToken or userData changes

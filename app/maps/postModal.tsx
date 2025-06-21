@@ -9,6 +9,7 @@ interface EmergencyData {
   mobile: string;
   purok: string;
   barangay: string;
+  nearby200: string;
   name: string;
   position: string;
   photoURL: string;
@@ -33,6 +34,7 @@ const defaultFormData: EmergencyData = {
   mobile: "",
   purok: "",
   barangay: "",
+  nearby200: "",
   name: "",
   position: "",
   photoURL: "",
@@ -45,52 +47,15 @@ const defaultFormData: EmergencyData = {
 
 const PostModal: React.FC<PostModalProps> = ({ selectedLocation, onClose }) => {
   const [isLoading, setIsLoading] = useState(false);
-  const [isFetchingLocation, setIsFetchingLocation] = useState(false);
   const [IncidentLoc, setIncidentLoc] = useState("");
-  const [locationName, setLocationName] = useState<string | null>(null);
   const [formData, setFormData] = useState<EmergencyData>(selectedLocation || defaultFormData);
 
-  const fetchLocationName = async (lat: number, long: number): Promise<string | null> => {
-    if (!process.env.NEXT_PUBLIC_DOMAIN) {
-      console.error("NEXT_PUBLIC_DOMAIN is not defined");
-      return null;
-    }
-
-    const LocNameGPS = { lat, long };
-    try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_DOMAIN}/api/places`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(LocNameGPS),
-      });
-
-      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-
-      const statusData = await response.json();
-      return statusData.current?.[0]?.name || "Unknown Location";
-    } catch (err) {
-      console.error("Error fetching location name", err);
-      return null;
-    }
-  };
-
+  
   useEffect(() => {
     if (selectedLocation) {
       setFormData(selectedLocation);
       setIncidentLoc(selectedLocation.barangay || "");
-      if (selectedLocation.lat && selectedLocation.long) {
-        const lat = parseFloat(selectedLocation.lat);
-        const long = parseFloat(selectedLocation.long);
-        if (!isNaN(lat) && !isNaN(long)) {
-          setIsFetchingLocation(true);
-          fetchLocationName(lat, long).then((name) => {
-            setLocationName(name);
-            setIsFetchingLocation(false);
-          });
-        } else {
-          setLocationName("Invalid Coordinates");
-        }
-      }
+    
     }
   }, [selectedLocation]);
 
@@ -190,7 +155,7 @@ const PostModal: React.FC<PostModalProps> = ({ selectedLocation, onClose }) => {
                 type="text"
                 id="barangay"
                 name="barangay"
-                value={isFetchingLocation ? "Fetching..." : locationName || "Unknown Location"}
+                value={formData.barangay}
                 onChange={handleInputChange}
                 placeholder="Incident"
                 className="w-full p-2 bg-gray-700 text-red-500 rounded border border-gray-600 disabled:opacity-50"

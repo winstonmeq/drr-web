@@ -21,10 +21,10 @@ export default function RootLayout({
    
   return (
 <div>
-          <header className="flex justify-end items-center gap-4 h-16 ">
+          {/* <header className="flex justify-end items-center gap-4 h-16 "> */}
        
               <TacticalNavbar />
-          </header>
+          {/* </header> */}
 
         {children}
     </div>

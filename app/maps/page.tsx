@@ -15,6 +15,7 @@ interface EmergencyData {
     mobile: string;
     purok: string;
     barangay: string;
+    nearby200: string;
     name: string;
     position: string;
     photoURL: string;
@@ -29,8 +30,9 @@ interface UserData {
     id: string;
     email: string;
     wname: string;
-    lat:string;
-    long:string;
+    lat: string;
+    long: string;
+    zoom: string;
     mobile: string;
     createdAt: string;
     updatedAt: string;
@@ -43,17 +45,6 @@ interface AuthData {
     user: UserData;
 }
 
-const LoadingComponent: React.FC = () => {
-    return (
-        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
-            <div className="bg-white rounded-lg p-8 flex flex-col items-center shadow-xl">
-                <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-blue-500"></div>
-                <p className="mt-4 text-lg font-semibold text-gray-700">Loading Emergency Data...</p>
-                <p className="text-sm text-gray-500">Please wait a moment</p>
-            </div>
-        </div>
-    );
-};
 
 const Notification: React.FC<{
     message: string;
@@ -89,9 +80,9 @@ const TestAudioPopup: React.FC<{
     onClose: () => void;
 }> = ({ onClose }) => {
     return (
-        <div className="fixed inset-0 flex items-center justify-center z-50 bg-opacity-10">
-            <div className="bg-white rounded-lg shadow-2xl p-6 max-w-sm w-full">
-                <h2 className="text-xl font-bold mb-4">Sound Notification!</h2>
+        <div className="fixed inset-0 p-4 flex items-start justify-end z-50 bg-opacity-10">
+            <div className="bg-white rounded-lg shadow-2xl p-4 ">
+                <h2 className="text-xl font-bold mb-4 text-center">Sound Notification!</h2>
                 <div className="flex justify-center">
                     <button
                         onClick={onClose}
@@ -112,7 +103,7 @@ const Page: React.FC = () => {
     const [showTestAudioPopup, setShowTestAudioPopup] = useState(true);
     const [lastPlayed, setLastPlayed] = useState<number>(0);
     const [userData, setUserData] = useState<UserData | null>(null);
-    const [isLoading, setIsLoading] = useState(true);
+    // const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const router = useRouter();
 
@@ -128,7 +119,6 @@ const Page: React.FC = () => {
     };
 
     const fetchData = async (munId: string, provId: string) => {
-        setIsLoading(true);
         try {
             const res = await fetch(
                 `${process.env.NEXT_PUBLIC_DOMAIN}/api/emergency?munId=${munId}&provId=${provId}`,
@@ -143,7 +133,6 @@ const Page: React.FC = () => {
             setData([]);
             return [];
         } finally {
-            setIsLoading(false);
         }
     };
 
@@ -151,7 +140,6 @@ const Page: React.FC = () => {
         const token = localStorage.getItem("authData");
         if (!token) {
             setError("No token found. Please log in.");
-            setIsLoading(false);
             router.push("/weblogin");
             return;
         }
@@ -193,40 +181,49 @@ const Page: React.FC = () => {
         setShowTestAudioPopup(false);
     };
 
+    const handleUpdate = () => {
+        if (userData?.munId && userData?.provId) {
+            fetchData(userData.munId, userData.provId);
+        } else {
+            setError("User location data is missing.");
+        }
+    };
+
     return (
-        <div className="flex h-screen bg-black-100">
-            {isLoading && <LoadingComponent />}
-            {!isLoading && (
-                <>
-                    <div className="w-3/12 bg-white shadow-md overflow-y-auto">
-                        <DataList 
-                            onSelectLocation={setSelectedLocation} 
-                            locations={data} 
-                        />
-                    </div> 
-                    <div className="flex w-11/12 h-screen relative">
-                        <MapComponent 
-                            locations={data} 
-                            selectedLocation={selectedLocation} munId={userData?.munId ?? ''} provId={userData?.provId ?? ''} lat={userData?.lat ?? ''} long={userData?.long ?? ''}
-                        />
-                    </div>
-                    {notification && (
-                        <Notification 
-                            message={notification.message} 
-                            onClose={closeNotification} 
-                        />
-                    )}
-                    {showTestAudioPopup && (
-                        <TestAudioPopup 
-                            onClose={closeTestAudioPopup} 
-                        />
-                    )}
-                    {error && (
-                        <div className="fixed bottom-4 right-4 bg-red-500 text-white p-4 rounded-lg">
-                            {error}
-                        </div>
-                    )}
-                </>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-[25%_75%] h-screen">
+            <div className="w-full h-full">
+                <DataList 
+                    onSelectLocation={setSelectedLocation} 
+                    locations={data}
+                    onUpdate={handleUpdate} 
+                />
+            </div>
+            <div className="w-full h-full">
+                <MapComponent 
+                    locations={data}
+                    selectedLocation={selectedLocation} 
+                    munId={userData?.munId ?? ''} 
+                    provId={userData?.provId ?? ''} 
+                    lat={userData?.lat ?? ''} 
+                    long={userData?.long ?? ''} 
+                    zoom={userData?.zoom ?? ''}
+                />
+            </div>
+            {notification && (
+                <Notification 
+                    message={notification.message} 
+                    onClose={closeNotification} 
+                />
+            )}
+            {showTestAudioPopup && (
+                <TestAudioPopup 
+                    onClose={closeTestAudioPopup} 
+                />
+            )}
+            {error && (
+                <div className="fixed bottom-4 right-4 bg-red-500 text-white p-4 rounded-lg">
+                    {error}
+                </div>
             )}
         </div>
     );

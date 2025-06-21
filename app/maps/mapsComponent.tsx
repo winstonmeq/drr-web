@@ -11,6 +11,7 @@ interface EmergencyData {
   mobile: string;
   purok: string;
   barangay: string;
+  nearby200: string;
   name: string;
   position: string;
   photoURL: string;
@@ -19,11 +20,12 @@ interface EmergencyData {
   createdAt: string;
 }
 
-const MapPage: React.FC<{ munId: string, provId: string, lat: string, long: string, locations: EmergencyData[]; selectedLocation: EmergencyData | null }> = ({
+const MapPage: React.FC<{ munId: string, provId: string, lat: string, long: string,zoom:string, locations: EmergencyData[]; selectedLocation: EmergencyData | null }> = ({
   munId,
   provId,
   lat,
   long,
+  zoom,
   selectedLocation,
 }) => {
   const [isScriptLoaded, setIsScriptLoaded] = useState(false);
@@ -70,7 +72,7 @@ const MapPage: React.FC<{ munId: string, provId: string, lat: string, long: stri
 
           const mapOptions = {
             center,
-            zoom: 13,
+            zoom: parseFloat(zoom),
             mapId: 'e442539727ad5d7e',
             mapTypeId: 'hybrid',
             scrollwheel: true,
@@ -79,6 +81,7 @@ const MapPage: React.FC<{ munId: string, provId: string, lat: string, long: stri
           const mapElement = document.getElementById('map');
 
           if (mapElement) {
+
             const newMap = new Map(mapElement, mapOptions);
 
             setMap(newMap);
@@ -112,28 +115,51 @@ const MapPage: React.FC<{ munId: string, provId: string, lat: string, long: stri
 
                 console.log(`Drawing polygon for ${poly.name} with paths:`, paths);
 
-                const polygon = new google.maps.Polygon({
+               new google.maps.Polygon({
                   paths,
                   strokeColor: '#9ACD32',
                   strokeOpacity: 0.8,
                   strokeWeight: 2,
                   fillColor: '#FF0000',
-                  fillOpacity: 0.35,
+                  fillOpacity: 0.05,
                   map: newMap,
                 });
 
-                const infoWindow = new google.maps.InfoWindow({
-                  content: `
-                    <div>
-                      <strong>Barangay:</strong> ${poly.name}<br>
-                    </div>
-                  `,
-                });
+     // Calculate the centroid of the polygon for label placement
+        let latSum = 0,
+          lngSum = 0;
+        paths.forEach((point) => {
+          latSum += point.lat;
+          lngSum += point.lng;
+        });
+        const centroid = {
+          lat: latSum / paths.length,
+          lng: lngSum / paths.length,
+        };
 
-                polygon.addListener('click', (event: google.maps.MapMouseEvent) => {
-                  infoWindow.setPosition(event.latLng);
-                  infoWindow.open(newMap);
-                });
+        // Add a label using a Marker
+        const labelMarker = new google.maps.Marker({
+          position: centroid,
+          map: newMap,
+          label: {
+            text: poly.name,
+            color: '#ffffff', // Label text color
+            fontSize: '16px',
+            fontWeight: 'bold',
+          },
+          icon: {
+            // Use an empty icon to show only the label
+            path: google.maps.SymbolPath.CIRCLE,
+            scale: 0, // Makes the icon invisible
+          },
+        });
+
+        newMap.addListener('zoom_changed', () => {
+          const zoom = newMap.getZoom() ?? 0;
+          labelMarker.setVisible(zoom > 13); // Show labels only at zoom level > 10
+        });
+
+
               });
             } catch (error) {
               console.error('Error fetching or rendering polygons:', error);
@@ -144,43 +170,6 @@ const MapPage: React.FC<{ munId: string, provId: string, lat: string, long: stri
     }
   }, [isScriptLoaded]);
 
-  const fetchLocationName = async (lat: number, long: number) => {
-    const LocNameGPS = { lat, long };
-    try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_DOMAIN}/api/places`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(LocNameGPS),
-      });
-
-      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-
-      const statusData = await response.json();
-
-      console.log('Location name status', statusData);
-
-      return statusData;
-    } catch (err) {
-      console.error('Error location name', err);
-      return null;
-    }
-  };
-
-  const getStatus = async (lat: number, long: number) => {
-    try {
-      const result = await fetchLocationName(lat, long);
-      if (!result) {
-        console.log('No result returned');
-        return null;
-      }
-      const currentStatus = result; // Access the 'status' field
-      console.log('Current Status:', currentStatus); // Logs "Poblacion"
-      return currentStatus;
-    } catch (err) {
-      console.error('Error getting status:', err);
-      return null;
-    }
-  };
 
   // Function to clear all markers, wrapped in useCallback
   const clearMarkers = useCallback(() => {
@@ -189,6 +178,8 @@ const MapPage: React.FC<{ munId: string, provId: string, lat: string, long: stri
     });
     setMarkers([]); // Reset the markers state
   }, [markers]);
+
+
 
   // Update the map's center and zoom when selectedLocation changes
   useEffect(() => {
@@ -220,12 +211,7 @@ const MapPage: React.FC<{ munId: string, provId: string, lat: string, long: stri
         // Store the new marker in the state
         setMarkers((prevMarkers) => [...prevMarkers, newMarker]);
 
-        const lat = parseFloat(selectedLocation.lat);
-        const long = parseFloat(selectedLocation.long);
-        const currentStatus = await getStatus(lat, long); // Await the async call
-
-        // Fallback to a default value if currentStatus is null
-        // const displayStatus = currentStatus.current.name || 'errorLocation';
+       
 
         const infoWindowContent = `
           <div style="
@@ -253,11 +239,10 @@ const MapPage: React.FC<{ munId: string, provId: string, lat: string, long: stri
               font-size: 14px;
             ">
               <span style="font-weight: bold; color: #ffffff;">Location:</span>
-              <span style="font-weight: bold; color: #FF0000;">${currentStatus.current.length >= 1 ? currentStatus.current[0].name : "Unknown Location"}</span>
-                 <span style="font-weight: bold; color: #87ceeb;">NearBy: 200m:</span>
-              <span style="font-weight: bold; color: #87ceeb;">${currentStatus.nearby200.length >= 1 ? currentStatus.nearby200[0].name : "no data"}</span>
-                 <span style="font-weight: bold; color: #ffff00;">NearBy: 500m:</span>
-              <span style="font-weight: bold; color: #ffff00;">${currentStatus.nearby500.length >= 1 ? currentStatus.nearby500[0].name : "no data"}</span>
+              <span style="font-weight: bold; color: #FF0000;">${selectedLocation.barangay}</span>
+                 <span style="font-weight: bold; color: #87ceeb;">Nearby: 200m:</span>
+              <span style="font-weight: bold; color: #87ceeb;">${selectedLocation.nearby200}</span>
+             
               <span style="font-weight: bold; color: #ffffff;">Sender:</span>
               <span>${selectedLocation.name}</span>
               <span style="font-weight: bold; color: #ffffff;">Mobile:</span>
