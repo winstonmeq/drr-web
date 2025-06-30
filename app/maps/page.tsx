@@ -151,7 +151,7 @@ const Page: React.FC = () => {
 
         messaging.then((msg) => {
             if (msg) {
-                const unsubscribe = onMessage(msg, async (payload) => {
+                const subscribe = onMessage(msg, async (payload) => {
                     console.log("FCM Message Received:", payload);
                     setNotification({
                         message: payload.notification?.body || "No notification body available.",
@@ -166,7 +166,7 @@ const Page: React.FC = () => {
 
                     playNotificationSound();
                 });
-                return () => unsubscribe();
+                return () => subscribe();
             }
         }).catch((error) => {
             console.error("Error initializing messaging:", error);

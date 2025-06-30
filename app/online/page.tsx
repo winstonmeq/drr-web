@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { messaging } from "../lib/firebase";
-import { getToken, onMessage } from "firebase/messaging";
+import { getToken} from "firebase/messaging";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
@@ -26,7 +26,7 @@ interface AuthData {
 
 export default function NotificationPage() {
   const [fcmToken, setFcmToken] = useState<string | null>(null);
-  const [, setNotification] = useState<{ title: string; body: string } | null>(null);
+  // const [, setNotification] = useState<{ title: string; body: string } | null>(null);
   const [userData, setUserData] = useState<UserData | null>(null);
   const [, setIsLoading] = useState(true);
   const [, setError] = useState<string | null>(null);
@@ -59,17 +59,7 @@ const playNotificationSound = () => {
 };
 
   useEffect(() => {
-    async function registerServiceWorker() {
-      if ("serviceWorker" in navigator) {
-        try {
-          const registration = await navigator.serviceWorker.register("/firebase-messaging-sw.js");
-          console.log("Service Worker registered:", registration);
-        } catch (error) {
-          console.error("Service Worker registration failed:", error);
-        }
-      }
-    }
-
+    
     const token = localStorage.getItem("authData");
     if (!token) {
       setError("No token found. Please log in.");
@@ -81,6 +71,19 @@ const playNotificationSound = () => {
     const authData: AuthData = JSON.parse(token);
     setUserData(authData.user); // Set user data from authData
     // console.log("User Data:", authData.user);
+
+
+    
+    async function registerServiceWorker() {
+      if ("serviceWorker" in navigator) {
+        try {
+          const registration = await navigator.serviceWorker.register("/firebase-messaging-sw.js");
+          console.log("Service Worker registered:", registration);
+        } catch (error) {
+          console.error("Service Worker registration failed:", error);
+        }
+      }
+    }
 
 
     
@@ -104,7 +107,8 @@ const playNotificationSound = () => {
 
         if (token) {
           setFcmToken(token);
-        } else {
+
+       } else {
           console.log("No registration token available.");
         }
       } catch (error) {
@@ -112,42 +116,43 @@ const playNotificationSound = () => {
       }
     }
 
-    async function listenForMessages() {
-      const msg = await messaging;
-      if (!msg) return;
+    // async function listenForMessages() {
+    //   const msg = await messaging;
+    //   if (!msg) return;
 
-      onMessage(msg, (payload) => {
-        console.log("Received foreground message:", payload);
-        if (payload.notification) {
-          setNotification({
-            title: payload.notification.title || "No Title",
-            body: payload.notification.body || "No Body",
-          });
-        }
-      });
-    }
+    //   onMessage(msg, (payload) => {
+    //     console.log("Received foreground message:", payload);
+    //     if (payload.notification) {
+    //       setNotification({
+    //         title: payload.notification.title || "No Title",
+    //         body: payload.notification.body || "No Body",
+    //       });
+    //     }
+    //   });
+    // }
 
     registerServiceWorker().then(() => {
       requestPermission();
-      listenForMessages();
+      // listenForMessages();
     });
+
   }, []); // Empty dependency array for initial setup
 
   // New useEffect to handle topic subscription after userData and fcmToken are set
   useEffect(() => {
-    async function subscribeToTopic(token: string, topic: string) {
+    async function subscribeToTopic(fcmToken: string, webUserId: string, munId: string) {
       try {
-        const response = await fetch("/api/subscribe", {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_DOMAIN}/api/fcmweb`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({ token, topic }),
+          body: JSON.stringify({ fcmToken, webUserId, munId }),
         });
 
         const data = await response.json();
         if (response.ok) {
-          console.log(`Successfully subscribed to topic: ${topic}`);
+          console.log(`Successfully subscribed to topic: ${fcmToken} for user: ${webUserId} in municipality: ${munId}`);
         } else {
           console.error("Failed to subscribe to topic", data);
         }
@@ -155,11 +160,10 @@ const playNotificationSound = () => {
         console.error("Error subscribing to topic:", error);
       }
     }
-
-    if (fcmToken && userData?.wname) {
-      subscribeToTopic(fcmToken, userData?.wname);
-      console.log(fcmToken, userData?.wname)
-    } else if (userData && !userData.wname) {
+      //dre nga part mag subscribe na sa FCM notification using token 
+    if (fcmToken && userData?.munId) {
+      subscribeToTopic(fcmToken, userData?.id, userData?.munId);
+    } else if (userData && !userData.munId) {
       console.error("munId is undefined, cannot subscribe to topic.");
     }
   }, [fcmToken, userData]); // Runs when fcmToken or userData changes

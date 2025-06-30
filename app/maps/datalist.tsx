@@ -96,7 +96,7 @@ const DataList: React.FC<DataListProps> = ({ locations, onSelectLocation, onUpda
 
 
   return (
-    <div className="w-full p-4 bg-gray-800 min-h-screen">
+    <div className="w-full p-4 bg-gray-800 min-h-screen overflow-hidden">
       <h2 className="text-xl sm:text-2xl font-bold text-white mb-4 tracking-wider uppercase pb-2">
         Emergency Reports
       </h2>
