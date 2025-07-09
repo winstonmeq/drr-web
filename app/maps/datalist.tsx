@@ -12,6 +12,7 @@ import {
 import { Button } from "@/components/ui/button";
 import PostModal from "./postModal";
 import IncLocModal from "./IncLocModal";
+import Image from "next/image";
 
 interface EmergencyData {
   id: string;
@@ -114,7 +115,7 @@ const DataList: React.FC<DataListProps> = ({ locations, onSelectLocation, onUpda
               // }`}
             >
               <div className={`rounded-lg p-4 sm:p-5 hover:bg-gray-700 transition-colors duration-200 border border-gray-600 ${location.verified?'bg-green-800':'bg-red-900'} `}>
-                <div className="grid gap-2 sm:grid-cols-1 lg:grid-cols-[70%_30%]">
+                <div className="grid gap-2 sm:grid-cols-1 md:grid-cols-3 lg:grid-cols-3">
                   <div onClick={() => handleLocationIncident(location)} className="flex-1 cursor-pointer">
                     <div className="flex items-center justify-start">
                       <div className="flex-shrink-0">
@@ -138,6 +139,9 @@ const DataList: React.FC<DataListProps> = ({ locations, onSelectLocation, onUpda
                         {moment(location.createdAt).fromNow().toUpperCase()}
                       </span>
                     </div>
+                  </div>
+                  <div className="flex items-center justify-center">
+                    <Image width={30} height={30} src={location.photoURL || '/no-image.png'} alt="Location Image" className="w-full h-32 object-cover rounded-lg" />
                   </div>
 
                   <div className="grid grid-rows-2 p-2 gap-2 items-center">

@@ -45,7 +45,6 @@ interface AuthData {
     user: UserData;
 }
 
-
 const Notification: React.FC<{
     message: string;
     onClose: () => void;
@@ -81,7 +80,7 @@ const TestAudioPopup: React.FC<{
 }> = ({ onClose }) => {
     return (
         <div className="fixed inset-0 p-4 flex items-start justify-end z-50 bg-opacity-10">
-            <div className="bg-white rounded-lg shadow-2xl p-4 ">
+            <div className="bg-white rounded-lg shadow-2xl p-4">
                 <h2 className="text-xl font-bold mb-4 text-center">Sound Notification!</h2>
                 <div className="flex justify-center">
                     <button
@@ -100,12 +99,19 @@ const Page: React.FC = () => {
     const [selectedLocation, setSelectedLocation] = useState<EmergencyData | null>(null);
     const [data, setData] = useState<EmergencyData[]>([]);
     const [notification, setNotification] = useState<{ message: string; } | null>(null);
-    const [showTestAudioPopup, setShowTestAudioPopup] = useState(true);
+    const [showTestAudioPopup, setShowTestAudioPopup] = useState(true); // Default to true
     const [lastPlayed, setLastPlayed] = useState<number>(0);
     const [userData, setUserData] = useState<UserData | null>(null);
-    // const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const router = useRouter();
+
+    // Initialize showTestAudioPopup based on localStorage in the browser
+    useEffect(() => {
+        if (typeof window !== 'undefined') {
+            const isDismissed = localStorage.getItem('soundNotificationDismissed') === 'true';
+            setShowTestAudioPopup(!isDismissed);
+        }
+    }, []);
 
     const playNotificationSound = () => {
         const now = Date.now();
@@ -132,12 +138,11 @@ const Page: React.FC = () => {
             setError("Failed to load emergency data. Please try again.");
             setData([]);
             return [];
-        } finally {
         }
     };
 
     useEffect(() => {
-        const token = localStorage.getItem("authData");
+        const token = typeof window !== 'undefined' ? localStorage.getItem("authData") : null;
         if (!token) {
             setError("No token found. Please log in.");
             router.push("/weblogin");
@@ -179,6 +184,10 @@ const Page: React.FC = () => {
 
     const closeTestAudioPopup = () => {
         setShowTestAudioPopup(false);
+        // Save to localStorage only in the browser
+        if (typeof window !== 'undefined') {
+            localStorage.setItem('soundNotificationDismissed', 'true');
+        }
     };
 
     const handleUpdate = () => {
@@ -191,7 +200,7 @@ const Page: React.FC = () => {
 
     return (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-[25%_75%] h-screen">
-            <div className="w-full h-full">
+            <div className="w-full h-full overflow-y-auto">
                 <DataList 
                     onSelectLocation={setSelectedLocation} 
                     locations={data}
