@@ -1,6 +1,8 @@
 'use client';
 
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, 
+//  useCallback
+ } from 'react';
 
 interface EmergencyData {
   id: string;
@@ -20,11 +22,11 @@ interface EmergencyData {
 }
 
 
-interface PolygonData {
-  name: string;
-  points: { lat: number; long: number }[];
-  province: { provinceName: string };
-}
+// interface PolygonData {
+//   name: string;
+//   points: { lat: number; long: number }[];
+//   province: { provinceName: string };
+// }
 
 // interface Props {
 //   lat: string;
@@ -45,7 +47,7 @@ const MapPage: React.FC<{ munId: string, provId: string, lat: string, long: stri
   selectedLocation,
 }) => {
   const [isScriptLoaded, setIsScriptLoaded] = useState(false);
-  const [markers, setMarkers] = useState<google.maps.marker.AdvancedMarkerElement[]>([]);
+  // const [markers, setMarkers] = useState<google.maps.marker.AdvancedMarkerElement[]>([]);
   const [map, setMap] = useState<google.maps.Map | null>(null);
   const [infoWindow, setInfoWindow] = useState<google.maps.InfoWindow | null>(null);
 
@@ -180,12 +182,12 @@ const MapPage: React.FC<{ munId: string, provId: string, lat: string, long: stri
   }, [isScriptLoaded, lat, long, zoom, munId, provId, setMap]);
 
   // Function to clear all markers, wrapped in useCallback
-  const clearMarkers = useCallback(() => {
-    markers.forEach((marker) => {
-      marker.map = null; // Remove marker from the map
-    });
-    setMarkers([]); // Reset the markers state
-  }, [markers]);
+  // const clearMarkers = useCallback(() => {
+  //   markers.forEach((marker) => {
+  //     marker.map = null; // Remove marker from the map
+  //   });
+  //   setMarkers([]); // Reset the markers state
+  // }, [markers]);
 
 
 useEffect(() => {
@@ -228,7 +230,7 @@ useEffect(() => {
             height: 30px;
             background-color: orange;
             border-radius: 100%;
-            box-shadow: 0 0 50px yellow;
+            box-shadow: 0 0 100px yellow;
             animation: blink 1.3s infinite;
           "></div>
         </div>
@@ -254,7 +256,7 @@ useEffect(() => {
         content: blinkingMarkerDiv,
       });
 
-      setMarkers((prevMarkers) => [...prevMarkers, newMarker]);
+      // setMarkers((prevMarkers) => [...prevMarkers, newMarker]);
 
       const infoWindowContent = `
         <div style="
