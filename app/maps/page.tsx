@@ -106,12 +106,12 @@ const Page: React.FC = () => {
     const router = useRouter();
 
     // Initialize showTestAudioPopup based on localStorage in the browser
-    useEffect(() => {
-        if (typeof window !== 'undefined') {
-            const isDismissed = localStorage.getItem('soundNotificationDismissed') === 'true';
-            setShowTestAudioPopup(!isDismissed);
-        }
-    }, []);
+    // useEffect(() => {
+    //     if (typeof window !== 'undefined') {
+    //         const isDismissed = localStorage.getItem('soundNotificationDismissed') === 'true';
+    //         setShowTestAudioPopup(!isDismissed);
+    //     }
+    // }, []);
 
     const playNotificationSound = () => {
         const now = Date.now();
