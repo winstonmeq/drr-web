@@ -6,6 +6,7 @@ import { getToken} from "firebase/messaging";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
+import NotificationCheck from "./notificationCheck";
 
 interface UserData {
   id: string;
@@ -174,6 +175,7 @@ const playNotificationSound = () => {
         <div className="text-center">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Welcome, {userData?.wname || 'User'}!</h1>
           <p className="text-lg text-gray-600 mb-6">Access your Command Center to get started.</p>
+          <NotificationCheck />
           <Link href={`/maps?munId=${userData?.munId}&provId=${userData?.provId}`}>
             <Button
               onClick={playNotificationSound}
