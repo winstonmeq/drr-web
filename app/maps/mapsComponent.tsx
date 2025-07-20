@@ -19,6 +19,10 @@ interface EmergencyData {
   status: boolean;
   verified: boolean;
   createdAt: string;
+  munName: string;
+  munId: string;  
+  provId: string;
+  mobUserId: string;
 }
 
 
@@ -107,69 +111,7 @@ const MapPage: React.FC<{ munId: string, provId: string, lat: string, long: stri
 
       setMap(newMap);
 
-      try {
-        // const response = await fetch(`${process.env.NEXT_PUBLIC_DOMAIN}/api/polygons?munId=${munId}&provId=${provId}`, {
-        //   headers: { 'Content-Type': 'application/json' },
-        //   cache: 'no-store',
-        // });
-
-        // if (!response.ok) {
-        //   console.error('Failed to fetch polygon data:', response.statusText);
-        //   return;
-        // }
-
-        // const polygonsData: PolygonData[] = await response.json();
-
-        // polygonsData.forEach((poly) => {
-        //   const paths = poly.points.map((p) => ({ lat: p.lat, lng: p.long }));
-
-        //   const polygon = new google.maps.Polygon({
-        //     paths,
-        //     strokeColor: '#9ACD32',
-        //     strokeOpacity: 0.8,
-        //     strokeWeight: 2,
-        //     fillColor: '#FF0000',
-        //     fillOpacity: 0.05,
-        //     map: newMap,
-        //   });
-
-          // const centroid = paths.reduce(
-          //   (acc, point) => {
-          //     acc.lat += point.lat;
-          //     acc.lng += point.lng;
-          //     return acc;
-          //   },
-          //   { lat: 0, lng: 0 }
-          // );
-
-        //   centroid.lat /= paths.length;
-        //   centroid.lng /= paths.length;
-
-        //   const labelMarker = new google.maps.Marker({
-        //     position: centroid,
-        //     map: newMap,
-        //     label: {
-        //       text: poly.name,
-        //       color: '#ffffff',
-        //       fontSize: '16px',
-        //       fontWeight: 'bold',
-        //     },
-        //     icon: {
-        //       path: google.maps.SymbolPath.CIRCLE,
-        //       scale: 0,
-        //     },
-        //   });
-
-        //   newMap.addListener('zoom_changed', () => {
-        //     const currentZoom = newMap.getZoom() ?? 0;
-        //     labelMarker.setVisible(currentZoom > 13);
-        //   });
-        // });
-      } catch (error) {
-        console.error('Error fetching or rendering polygons:', error);
-      }
-
-      
+           
     };
 
 

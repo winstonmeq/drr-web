@@ -29,6 +29,9 @@ interface EmergencyData {
   status: boolean;
   situation: string;
   munName: string;
+  munId: string;
+  provId: string;
+  mobUserId: string;
   verified: boolean;
   createdAt: string;
 }

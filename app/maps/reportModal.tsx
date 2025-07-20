@@ -27,6 +27,7 @@ interface EmergencyData {
   situation: string;
   munName: string;
   createdAt: string;
+  mobUserId: string;
   munId: string;
   provId: string;
 }

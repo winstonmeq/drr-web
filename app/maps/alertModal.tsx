@@ -17,6 +17,7 @@ interface EmergencyData {
   situation: string;
   munName: string;
   createdAt: string;
+  mobUserId: string;
   munId: string;
   provId: string;
 }
@@ -28,20 +29,21 @@ interface AlertModalProps {
 const AlertModal: React.FC<AlertModalProps> = ({ onClose }) => {
   const [formData, setFormData] = useState<EmergencyData>({
     emergency: "", // Default to blue alert
-    lat: "7.1577",
-    long: "125.0513",
-    mobile: "09481234567",
-    barangay: "Poblacion",
-    name: "MDRRMO",
-    position: "Government",
+    lat: "",
+    long: "",
+    mobile: "",
+    barangay: "",
+    name: "",
+    position: "",
     photoURL: "",
     situation: "",
-    munName: "President Roxas",
+    munName: "",
     status: false,
     verified: false,
     createdAt: new Date().toISOString(),
-    munId: "67e362085d82ab1bd2f2662e",
-    provId: "67e23dcc8de27c2818dbbd9b",
+    mobUserId: "",
+    munId: "",
+    provId: "",
   });
 
   const [isLoading, setIsLoading] = useState(false);

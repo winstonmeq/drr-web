@@ -18,6 +18,9 @@ interface EmergencyData {
   situation: string;
   munName: string;
   createdAt: string;
+  munId: string;
+  provId: string; 
+  mobUserId: string;
 }
 
 interface PostModalProps {
@@ -40,6 +43,9 @@ const defaultFormData: EmergencyData = {
   photoURL: "",
   situation: "",
   munName: "",
+  munId: "",
+  provId: "", 
+  mobUserId: "",
   status: false,
   verified: false,
   createdAt: new Date().toISOString(),
