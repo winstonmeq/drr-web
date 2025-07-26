@@ -41,7 +41,7 @@ const AlertModal: React.FC<AlertModalProps> = ({ onClose }) => {
     status: false,
     verified: false,
     createdAt: new Date().toISOString(),
-    mobUserId: "",
+    mobUserId: "n/a",
     munId: "",
     provId: "",
   });
