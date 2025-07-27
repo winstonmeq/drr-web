@@ -10,11 +10,9 @@ interface EmergencyData {
   lat: string;
   long: string;
   mobile: string;
-  purok: string;
   barangay: string;
   nearby200: string;
   name: string;
-  position: string;
   photoURL: string;
   status: boolean;
   verified: boolean;
@@ -25,21 +23,6 @@ interface EmergencyData {
   mobUserId: string;
 }
 
-
-// interface PolygonData {
-//   name: string;
-//   points: { lat: number; long: number }[];
-//   province: { provinceName: string };
-// }
-
-// interface Props {
-//   lat: string;
-//   long: string;
-//   zoom: string;
-//   munId: string;
-//   provId: string;
-//   setMap: (map: google.maps.Map) => void;
-// }
 
 
 const MapPage: React.FC<{ munId: string, provId: string, lat: string, long: string,zoom:string, locations: EmergencyData[]; selectedLocation: EmergencyData | null }> = ({

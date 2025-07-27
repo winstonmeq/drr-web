@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { 
   FaHome, 
   FaBell, 
@@ -13,10 +13,33 @@ import ReportModal from "./reportModal";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 
+
+interface UserData {
+    id: string;
+    email: string;
+    wname: string;
+    lat: string;
+    long: string;
+    zoom: string;
+    mobile: string;
+    createdAt: string;
+    updatedAt: string;
+    munId: string;
+    provId: string;
+}
+
+interface AuthData {
+    token: string;
+    user: UserData;
+}
+
 const TacticalNavbar: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isModalOpen2, setIsModalOpen2] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [userData, setUserData] = useState<UserData | null>(null);
+  
+
   const router = useRouter();
 
   const toggleModal = () => {
@@ -35,6 +58,21 @@ const TacticalNavbar: React.FC = () => {
     localStorage.removeItem('authData');
     router.push('/weblogin');
   };
+
+
+   useEffect(() => {
+          const token = typeof window !== 'undefined' ? localStorage.getItem("authData") : null;
+          if (!token) {
+              router.push("/weblogin");
+              return;
+          }
+  
+          const authData: AuthData = JSON.parse(token);
+          setUserData(authData.user);
+  
+        
+      }, []);
+
 
   return (
     <>
@@ -74,7 +112,7 @@ const TacticalNavbar: React.FC = () => {
             <div className="flex items-center space-x-3">
               <FaShieldAlt className="text-green-500" size={28} />
               <h1 className="text-xl font-bold uppercase tracking-wider">
-                MDRRMO Command Center
+                {userData?.wname} MDRRMO Command Center
               </h1>
             </div>
             <div className="flex items-center justify-end space-x-6">
@@ -166,7 +204,17 @@ const TacticalNavbar: React.FC = () => {
       </nav>
 
       {/* Render the Modal */}
-      {isModalOpen && <AlertModal onClose={toggleModal} />}
+      {isModalOpen && 
+             <AlertModal 
+             lat={userData?.lat ?? ''}
+             lng={userData?.long ?? ''}
+             mobile={userData?.mobile ?? ''}
+             webUserId={userData?.id ?? ''}
+             munId={userData?.munId ?? ''}   
+             provId={userData?.provId ?? ''}
+             munName={userData?.wname ?? ''}             
+             
+             onClose={toggleModal} />}
       {isModalOpen2 && <ReportModal onClose={toggleModal2} />}
     </>
   );

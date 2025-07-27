@@ -20,14 +20,11 @@ interface EmergencyData {
   lat: string;
   long: string;
   mobile: string;
-  purok: string;
   barangay: string;
   nearby200:string;
   name: string;
-  position: string;
   photoURL: string;
   status: boolean;
-  situation: string;
   munName: string;
   munId: string;
   provId: string;
@@ -40,13 +37,14 @@ interface DataListProps {
   locations: EmergencyData[];
   onSelectLocation: (location: EmergencyData | null) => void;
   onUpdate: () => void;
+  webUserId: string;
 
 }
 
 
 
 
-const DataList: React.FC<DataListProps> = ({ locations, onSelectLocation, onUpdate }) => {
+const DataList: React.FC<DataListProps> = ({ locations, onSelectLocation, onUpdate, webUserId }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isModalOpen2, setIsModalOpen2] = useState(false);
   const [selectedLocation, setSelectedLocation] = useState<EmergencyData | null>(null);
@@ -98,12 +96,12 @@ const DataList: React.FC<DataListProps> = ({ locations, onSelectLocation, onUpda
     }
   };
 
+const unverifiedCount = locations.filter((location) => !location.verified).length;
 
   return (
     <div className="w-full p-4 bg-gray-800 min-h-screen overflow-hidden">
-      <h2 className="text-xl sm:text-2xl font-bold text-white mb-4 tracking-wider uppercase pb-2">
-        Emergency Reports
-      </h2>
+      <h2 className="text-xl sm:text-xl font-bold text-white mb-4 tracking-wider pb-2">
+{locations.length} Active Emergency Reports ({unverifiedCount} Unverified)      </h2>
       {locations.length === 0 ? (
         <div className="text-center py-8 text-gray-400 text-sm sm:text-base">
           NO ACTIVE EMERGENCIES DETECTED
@@ -175,6 +173,7 @@ const DataList: React.FC<DataListProps> = ({ locations, onSelectLocation, onUpda
       {isModalOpen && <PostModal 
           selectedLocation={selectedLocation}
           onSelectLocation={onSelectLocation}
+          webUserId={webUserId}
           onClose={toggleModal}
         />}
 

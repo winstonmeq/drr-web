@@ -8,13 +8,10 @@ interface EmergencyData {
   lat: string;
   long: string;
   mobile: string;
-  purok: string;
   barangay: string;
   nearby200: string;
   name: string;
-  position: string;
   photoURL: string;
-  situation: string;
   munName: string;
   status: boolean;
   verified: boolean;
@@ -35,13 +32,10 @@ const IncLocModal: React.FC<IncLocModalProps> = ({ selectedLocation, onClose, on
       lat: "",
       long: "",
       mobile: "",
-      purok: "",
       barangay: "",
       nearby200: "",
       name: "",
-      position: "",
       photoURL: "",
-      situation: "",
       munName: "",
       status: false,
       verified: false,
@@ -84,6 +78,8 @@ const IncLocModal: React.FC<IncLocModalProps> = ({ selectedLocation, onClose, on
       setSuccess("Incident updated successfully");
 
       onUpdate()
+      onClose();
+
 
     } catch (err) {
       setError(err instanceof Error ? err.message : "Unknown error occurred");

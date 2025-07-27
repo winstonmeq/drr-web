@@ -3,47 +3,50 @@ import React, { useState } from "react";
 import { FaTimes} from "react-icons/fa";
 import Image from "next/image";
 
-interface EmergencyData {
+interface PostnotifyData {
   emergency: string;
   lat: string;
   long: string;
   mobile: string;
   barangay: string;
   name: string;
-  position: string;
   photoURL: string;
-  status: boolean;
-  verified: boolean;
   situation: string;
+  verified: boolean;
   munName: string;
   createdAt: string;
-  mobUserId: string;
   munId: string;
   provId: string;
+  webUserId: string;
 }
 
 interface AlertModalProps {
+  lat: string;
+  lng: string;
+  webUserId: string;
+  mobile: string;  
+  munName: string;
+  provId: string; 
+  munId: string;
   onClose: () => void;
 }
 
-const AlertModal: React.FC<AlertModalProps> = ({ onClose }) => {
-  const [formData, setFormData] = useState<EmergencyData>({
+const AlertModal: React.FC<AlertModalProps> = ({ onClose, lat, lng,mobile, webUserId, munId, provId, munName }) => {
+  const [formData, setFormData] = useState<PostnotifyData>({
     emergency: "", // Default to blue alert
-    lat: "",
-    long: "",
-    mobile: "",
+    lat: lat,
+    long: lng,
+    mobile: mobile,
     barangay: "",
-    name: "",
-    position: "",
+    name: munName,
     photoURL: "",
     situation: "",
-    munName: "",
-    status: false,
-    verified: false,
+    verified: true,
+    munName: munName,
     createdAt: new Date().toISOString(),
-    mobUserId: "n/a",
-    munId: "",
-    provId: "",
+    munId: munId,
+    provId: provId,
+    webUserId: webUserId,
   });
 
   const [isLoading, setIsLoading] = useState(false);
@@ -99,9 +102,13 @@ const AlertModal: React.FC<AlertModalProps> = ({ onClose }) => {
     }
   };
 
+
+
+
+  ////////////////////////////////////////////////////
   const handleSubmit = async () => {
-    if (!formData.emergency || !formData.lat || !formData.long) {
-      alert("Please fill required fields: Emergency, Latitude, and Longitude");
+    if (!formData.emergency ) {
+      alert("Please fill required fields: Emergency, situation, and barangay");
       return;
       }
 
@@ -116,7 +123,10 @@ const AlertModal: React.FC<AlertModalProps> = ({ onClose }) => {
 
       const updatedFormData = { ...formData, photoURL };
 
-      const response = await fetch("/api/posts", {
+          console.log("Form submitted with data:", updatedFormData);
+
+
+      const response = await fetch(`${process.env.NEXT_PUBLIC_DOMAIN}/api/postnotify?token=mySecretAlertifyToken2025`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -130,7 +140,7 @@ const AlertModal: React.FC<AlertModalProps> = ({ onClose }) => {
         setPreviewUrl(null);
         onClose();
       } else {
-        console.error("Failed to post emergency:", response.statusText);
+        console.error("Failed to post emergency:", response.status);
         alert("Failed to post emergency. Please try again.");
       }
     } catch (error) {
@@ -139,6 +149,8 @@ const AlertModal: React.FC<AlertModalProps> = ({ onClose }) => {
     } finally {
       setIsLoading(false);
     }
+
+
   };
 
   return (
@@ -164,19 +176,9 @@ const AlertModal: React.FC<AlertModalProps> = ({ onClose }) => {
           <div>
             <label htmlFor="emergency" className="block text-white mb-1">
               Alert Type *
-            </label>
+            </label>             
              
-              <input
-                type="text"
-                id="emergency"
-                name="emergency"
-                value={formData.emergency}
-                onChange={handleInputChange}
-                placeholder="Emergency Type *"
-                className="w-full p-2 bg-gray-700 text-white rounded border border-gray-600"
-                disabled={isLoading}
-              />
-            {/* <select
+            <select
               id="emergency"
               name="emergency" // Added name attribute to match formData
               value={formData.emergency}
@@ -184,12 +186,47 @@ const AlertModal: React.FC<AlertModalProps> = ({ onClose }) => {
               className="w-full p-2 bg-gray-700 text-white rounded border border-gray-600"
               disabled={isLoading}
             >
+               <option value="">Select</option>
               <option value="Blue Alert">Blue Alert</option>
               <option value="Red Alert">Red Alert</option>
               <option value="Landslide">Landslide</option>
 
-            </select> */}
+            </select>
           </div>
+ 
+          <div className="flex space-x-4">
+            <div className="flex-1">
+              <label htmlFor="name" className="block text-white mb-1">
+                Latitude:
+              </label>
+              <input
+                type="text"
+                id="lat"
+                name="lat"
+                value={formData.lat}
+                onChange={handleInputChange}
+                placeholder="Latitude"
+                className="w-full p-2 bg-gray-700 text-white rounded border border-gray-600"
+                disabled={isLoading}
+              />
+            </div>
+            <div className="flex-1">
+             <label htmlFor="long" className="block text-white mb-1">
+              Longitude:
+            </label>
+            <input
+              type="text"
+              id="long"
+              name="long"
+              value={formData.long}
+              onChange={handleInputChange}
+              placeholder="Longitude"
+              className="w-full p-2 bg-gray-700 text-white rounded border border-gray-600"
+              disabled={isLoading}
+            />
+            </div>
+          </div>
+68817aade75a3c8797d60062
 
           <div className="flex space-x-4">
             <div className="flex-1">
@@ -221,6 +258,24 @@ const AlertModal: React.FC<AlertModalProps> = ({ onClose }) => {
               className="w-full p-2 bg-gray-700 text-white rounded border border-gray-600"
               disabled={isLoading}
             />
+            </div>
+          </div>
+
+     <div className="flex space-x-4">
+             <div className="flex-1">
+              <label htmlFor="barangay" className="block text-white mb-1">
+                Web User ID
+              </label>
+              <input
+                type="text"
+                id="webUserId"
+                name="webUserId"
+                value={formData.webUserId}
+                onChange={handleInputChange}
+                placeholder="webUserId"
+                className="w-full p-2 bg-gray-700 text-white rounded border border-gray-600"
+                disabled={isLoading}
+              />
             </div>
           </div>
 

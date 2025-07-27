@@ -7,100 +7,121 @@ interface EmergencyData {
   lat: string;
   long: string;
   mobile: string;
-  purok: string;
   barangay: string;
   nearby200: string;
   name: string;
-  position: string;
   photoURL: string;
   status: boolean;
   verified: boolean;
-  situation: string;
   munName: string;
   createdAt: string;
   munId: string;
-  provId: string; 
+  provId: string;
   mobUserId: string;
+}
+
+interface PostnotifyData {
+  id: string;
+  emergency: string;
+  lat: string;
+  long: string;
+  mobile: string;
+  barangay: string;
+  name: string;
+  photoURL: string;
+  situation: string;
+  verified: boolean;
+  munName: string;
+  createdAt: string;
+  munId: string;
+  provId: string;
+  webUserId: string;
 }
 
 interface PostModalProps {
   selectedLocation: EmergencyData | null;
   onSelectLocation: (location: EmergencyData) => void;
+  webUserId: string;
   onClose: () => void;
 }
 
-const defaultFormData: EmergencyData = {
+const defaultFormData: PostnotifyData = {
   id: "",
   emergency: "",
   lat: "",
   long: "",
   mobile: "",
-  purok: "",
   barangay: "",
-  nearby200: "",
   name: "",
-  position: "",
-  photoURL: "",
   situation: "",
+  photoURL: "",
   munName: "",
   munId: "",
-  provId: "", 
-  mobUserId: "",
-  status: false,
+  provId: "",
+  webUserId: "",
   verified: false,
   createdAt: new Date().toISOString(),
 };
 
-const PostModal: React.FC<PostModalProps> = ({ selectedLocation, onClose }) => {
+const PostModal: React.FC<PostModalProps> = ({ selectedLocation, onClose, webUserId }) => {
   const [isLoading, setIsLoading] = useState(false);
-  const [IncidentLoc, setIncidentLoc] = useState("");
-  const [formData, setFormData] = useState<EmergencyData>(selectedLocation || defaultFormData);
+  const [formData, setFormData] = useState<PostnotifyData>(defaultFormData);
 
-  
   useEffect(() => {
     if (selectedLocation) {
-      setFormData(selectedLocation);
-      setIncidentLoc(selectedLocation.barangay || "");
-    
+      // Map EmergencyData to PostnotifyData
+      setFormData({
+        ...defaultFormData, // Ensure all fields are initialized
+        id: selectedLocation.id,
+        emergency: selectedLocation.emergency,
+        lat: selectedLocation.lat,
+        long: selectedLocation.long,
+        mobile: selectedLocation.mobile,
+        barangay: selectedLocation.barangay,
+        name: selectedLocation.name,
+        photoURL: selectedLocation.photoURL,
+        verified: selectedLocation.verified,
+        munName: selectedLocation.munName,
+        createdAt: selectedLocation.createdAt,
+        munId: selectedLocation.munId,
+        provId: selectedLocation.provId,
+        webUserId: webUserId, // Default or retrieve from context/auth
+        situation: "", // Initialize empty, to be filled by user
+      });
+    } else {
+      setFormData(defaultFormData);
     }
   }, [selectedLocation]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
-    if (name === "barangay") {
-      setIncidentLoc(value);
-    }
     setFormData((prev) => ({
       ...prev,
       [name]: value,
     }));
   };
 
+
+
   const handleSubmit = async () => {
-    if (!formData.emergency || !formData.lat || !formData.long || !formData.situation) {
-      alert("Please fill required fields: Emergency, Latitude, Longitude, and Situation");
+    if (!formData.verified === true) {
+      alert("Need to verify incident before posting.");
       return;
     }
 
     setIsLoading(true);
 
     try {
-      const updatedFormData = {
-        ...formData,
-        barangay: IncidentLoc,
-      };
-
-      const response = await fetch("/api/posts", {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_DOMAIN}/api/postnotify?token=mySecretAlertifyToken2025`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(updatedFormData),
+        body: JSON.stringify(formData), // Send formData directly
       });
 
       if (response.ok) {
         console.log("Emergency posted successfully");
-        // onSelectLocation(updatedFormData);
         onClose();
       } else {
         const errorData = await response.json();
@@ -113,6 +134,8 @@ const PostModal: React.FC<PostModalProps> = ({ selectedLocation, onClose }) => {
     } finally {
       setIsLoading(false);
     }
+
+    console.log("Form submitted with data:", formData);
   };
 
   return (
@@ -169,8 +192,6 @@ const PostModal: React.FC<PostModalProps> = ({ selectedLocation, onClose }) => {
               />
             </div>
           </div>
-
-       
 
           <div className="flex space-x-4">
             <div className="flex-1">

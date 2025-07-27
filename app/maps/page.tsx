@@ -13,13 +13,10 @@ interface EmergencyData {
     lat: string;
     long: string;
     mobile: string;
-    purok: string;
     barangay: string;
     nearby200: string;
     name: string;
-    position: string;
     photoURL: string;
-    situation: string;
     munName: string;
     status: boolean;
     verified: boolean;
@@ -108,14 +105,7 @@ const Page: React.FC = () => {
     const [error, setError] = useState<string | null>(null);
     const router = useRouter();
 
-    // Initialize showTestAudioPopup based on localStorage in the browser
-    // useEffect(() => {
-    //     if (typeof window !== 'undefined') {
-    //         const isDismissed = localStorage.getItem('soundNotificationDismissed') === 'true';
-    //         setShowTestAudioPopup(!isDismissed);
-    //     }
-    // }, []);
-
+   
     const playNotificationSound = () => {
         const now = Date.now();
         if (now - lastPlayed < 1000) return;
@@ -207,6 +197,7 @@ const Page: React.FC = () => {
                 <DataList 
                     onSelectLocation={setSelectedLocation} 
                     locations={data}
+                    webUserId={userData?.id || ""}
                     onUpdate={handleUpdate} 
                 />
             </div>
