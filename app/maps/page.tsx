@@ -97,6 +97,8 @@ const TestAudioPopup: React.FC<{
 
 const Page: React.FC = () => {
     const [selectedLocation, setSelectedLocation] = useState<EmergencyData | null>(null);
+    const [selectedLocation2, setSelectedLocation2] = useState<EmergencyData | null>(null);
+
     const [data, setData] = useState<EmergencyData[]>([]);
     const [notification, setNotification] = useState<{ message: string; } | null>(null);
     const [showTestAudioPopup, setShowTestAudioPopup] = useState(true); // Default to true
@@ -157,9 +159,9 @@ const Page: React.FC = () => {
 
                     const newData = await fetchData(authData.user.munId, authData.user.provId);
                     if (newData.length > 0) {
-                        setSelectedLocation(newData[0]);
+                        setSelectedLocation2(newData[0]);
                     } else {
-                        setSelectedLocation(null);
+                        setSelectedLocation2(null);
                     }
 
                     playNotificationSound();
@@ -205,6 +207,7 @@ const Page: React.FC = () => {
                 <MapComponent 
                     locations={data}
                     selectedLocation={selectedLocation} 
+                    selectedLocation2={selectedLocation2} 
                     munId={userData?.munId ?? ''} 
                     provId={userData?.provId ?? ''} 
                     lat={userData?.lat ?? ''} 

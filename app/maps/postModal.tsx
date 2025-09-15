@@ -104,10 +104,10 @@ const PostModal: React.FC<PostModalProps> = ({ selectedLocation, onClose, webUse
 
 
   const handleSubmit = async () => {
-    if (!formData.verified === true) {
-      alert("Need to verify incident before posting.");
-      return;
-    }
+    // if (!formData.verified === true) {
+    //   alert("Need to verify incident before posting.");
+    //   return;
+    // }
 
     setIsLoading(true);
 

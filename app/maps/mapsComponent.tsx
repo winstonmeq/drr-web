@@ -25,13 +25,13 @@ interface EmergencyData {
 
 
 
-const MapPage: React.FC<{ munId: string, provId: string, lat: string, long: string,zoom:string, locations: EmergencyData[]; selectedLocation: EmergencyData | null }> = ({
+const MapPage: React.FC<{ munId: string, provId: string, lat: string, long: string,zoom:string, locations: EmergencyData[]; selectedLocation: EmergencyData | null, selectedLocation2: EmergencyData | null }> = ({
   munId,
   provId,
   lat,
   long,
   zoom,
-  selectedLocation,
+  selectedLocation, selectedLocation2,
 }) => {
   const [isScriptLoaded, setIsScriptLoaded] = useState(false);
   // const [markers, setMarkers] = useState<google.maps.marker.AdvancedMarkerElement[]>([]);
@@ -253,6 +253,166 @@ useEffect(() => {
 
   updateMap();
 }, [map, selectedLocation, lat, long, munId, provId]);
+
+
+
+//this code for notification when a emergency is received
+
+useEffect(() => {
+  const updateMap = async () => {
+    if (map && selectedLocation2) {
+      const newCenter = {
+        lat: parseFloat(selectedLocation2.lat),
+        lng: parseFloat(selectedLocation2.long),
+      };
+
+      // Update the map's center and zoom
+      map.setCenter(newCenter);
+      map.setZoom(12);
+
+      // Clear previous InfoWindow if it exists
+      if (infoWindow) {
+        infoWindow.close();
+      }
+
+      const { AdvancedMarkerElement } = (await google.maps.importLibrary(
+        'marker'
+      )) as google.maps.MarkerLibrary;
+
+      // Create blinking marker content
+      const blinkingMarkerDiv = document.createElement('div');
+      blinkingMarkerDiv.innerHTML = `
+        <div style="
+          width: 30px;
+          height: 30px;
+          background-color: red;
+          border-radius: 100%;
+          animation: blink 1s infinite;
+          box-shadow: 0 0 10px red;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        ">
+          <div style="
+            width: 30px;
+            height: 30px;
+            background-color: orange;
+            border-radius: 100%;
+            box-shadow: 0 0 100px yellow;
+            animation: blink 1.3s infinite;
+          "></div>
+        </div>
+      `;
+
+      if (!document.getElementById('blinking-marker-style')) {
+        const style = document.createElement('style');
+        style.id = 'blinking-marker-style';
+        style.textContent = `
+          @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0; }
+          }
+        `;
+        document.head.appendChild(style);
+      }
+
+      // Create new marker
+      const newMarker = new AdvancedMarkerElement({
+        position: newCenter,
+        map: map,
+        title: 'Selected Location',
+        content: blinkingMarkerDiv,
+      });
+
+      // setMarkers((prevMarkers) => [...prevMarkers, newMarker]);
+
+      const infoWindowContent = `
+        <div style="
+          background-color: #1c1c1c;
+          color: #e0e0e0;
+          font-family: 'Arial', sans-serif;
+          padding: 15px;
+          border-radius: 8px;
+          border: 2px solid #4caf50;
+          box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+          max-width: 400px;
+          line-height: 1.4;
+        ">
+          <h3 style="
+            margin: 0 0 10px;
+            font-size: 18px;
+            color: #FF0000;
+            text-transform: uppercase;
+            font-weight: bold;
+          ">${selectedLocation2.emergency}</h3>
+          <div style="
+            display: grid;
+            grid-template-columns: auto 1fr;
+            gap: 8px;
+            font-size: 14px;
+          ">
+            <span style="font-weight: bold; color: #ffffff;">Location:</span>
+            <span style="font-weight: bold; color: #FF0000;">${selectedLocation2.barangay}</span>
+            <span style="font-weight: bold; color: #87ceeb;">Nearby: 200m:</span>
+            <span style="font-weight: bold; color: #87ceeb;">${selectedLocation2.nearby200}</span>
+          
+          </div>
+          <div style="
+            margin-top: 10px;
+            text-align: right;
+          ">
+            <span style="
+              font-size: 12px;
+              color: #b0bec5;
+              font-style: italic;
+            ">Incident Report</span>
+          </div>
+        </div>
+      `;
+
+      // Create and open new InfoWindow
+      const newInfoWindow = new google.maps.InfoWindow({
+        content: infoWindowContent,
+      });
+
+      newMarker.addListener('gmp-click', () => {
+        newInfoWindow.open({
+          anchor: newMarker,
+          map: map,
+        });
+      });
+
+      newInfoWindow.open(map, newMarker);
+
+      // Update the current InfoWindow state
+      setInfoWindow(newInfoWindow);
+    }
+  };
+
+  updateMap();
+}, [map, selectedLocation2, lat, long, munId, provId]);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
  // Added clearMarkers to dependencies
 
   return (
