@@ -141,9 +141,9 @@ const unverifiedCount = locations.filter((location) => !location.verified).lengt
                       </span>
                     </div>
                   </div>
-                  <div className="flex items-center justify-center">
+                  {/* <div className="flex items-center justify-center">
                     <Image width={30} height={30} src={location.photoURL || '/no-image.png'} alt="Location Image" className="w-full h-32 object-cover rounded-lg" />
-                  </div>
+                  </div> */}
 
                   <div className="grid grid-rows-2 p-2 gap-2 items-center">
                     <Button 
