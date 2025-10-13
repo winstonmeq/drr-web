@@ -11,8 +11,8 @@ interface EmergencyData {
   nearby200: string;
   name: string;
   photoURL: string;
-  status: boolean;
-  verified: boolean;
+  status: string;
+  verified: string;
   munName: string;
   createdAt: string;
   munId: string;
@@ -30,7 +30,7 @@ interface PostnotifyData {
   name: string;
   photoURL: string;
   situation: string;
-  verified: boolean;
+  verified: string;
   munName: string;
   createdAt: string;
   munId: string;
@@ -59,7 +59,7 @@ const defaultFormData: PostnotifyData = {
   munId: "",
   provId: "",
   webUserId: "",
-  verified: false,
+  verified: "",
   createdAt: new Date().toISOString(),
 };
 

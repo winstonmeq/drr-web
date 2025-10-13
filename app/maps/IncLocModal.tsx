@@ -13,8 +13,8 @@ interface EmergencyData {
   name: string;
   photoURL: string;
   munName: string;
-  status: boolean;
-  verified: boolean;
+  status: string;
+  verified: string;
   createdAt: string;
 }
 
@@ -37,8 +37,8 @@ const IncLocModal: React.FC<IncLocModalProps> = ({ selectedLocation, onClose, on
       name: "",
       photoURL: "",
       munName: "",
-      status: false,
-      verified: false,
+      status: "",
+      verified: "",
       createdAt: new Date().toISOString(),
     }
   );

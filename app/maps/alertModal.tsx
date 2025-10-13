@@ -186,10 +186,14 @@ const AlertModal: React.FC<AlertModalProps> = ({ onClose, lat, lng,mobile, webUs
               className="w-full p-2 bg-gray-700 text-white rounded border border-gray-600"
               disabled={isLoading}
             >
-               <option value="">Select</option>
+                <option value="">Select</option>
               <option value="Blue Alert">Blue Alert</option>
               <option value="Red Alert">Red Alert</option>
-              <option value="Landslide">Landslide</option>
+              <option value="Warning">Warning</option>
+              <option value="Suspension">Supension</option>
+              <option value="Announcement">Announcement</option>
+              <option value="Traffic Alert">Traffice Alert</option>
+
 
             </select>
           </div>

@@ -14,8 +14,8 @@ interface EmergencyData {
   nearby200: string;
   name: string;
   photoURL: string;
-  status: boolean;
-  verified: boolean;
+  status: string;
+  verified: string;
   createdAt: string;
   munName: string;
   munId: string;  

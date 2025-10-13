@@ -18,8 +18,8 @@ interface EmergencyData {
     name: string;
     photoURL: string;
     munName: string;
-    status: boolean;
-    verified: boolean;
+    status: string;
+    verified: string;
     createdAt: string;
     munId: string;
     provId: string;

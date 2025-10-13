@@ -24,12 +24,12 @@ interface EmergencyData {
   nearby200:string;
   name: string;
   photoURL: string;
-  status: boolean;
+  status: string;
   munName: string;
   munId: string;
   provId: string;
   mobUserId: string;
-  verified: boolean;
+  verified: string;
   createdAt: string;
 }
 
