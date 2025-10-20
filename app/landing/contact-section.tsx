@@ -30,20 +30,20 @@ export default function ContactSection({id}:ContactSectionProps) {
     {
       icon: Mail,
       label: 'Email Us',
-      value: 'qalertapp@gmail.com',
+      value: 'qalertapps@gmail.com',
       href: 'mailto:winstonmequila@gmail.com',
     },
     {
       icon: Phone,
       label: 'Call Us',
-      value: '+63 907 324 8462',
+      value: '+63 907 324 8462 or +63 908 864 8123',
       href: 'tel:+639073248462',
     },
     {
       icon: FacebookIcon,
       label: 'Connect on Facebook',
-      value: 'qalertapps',
-      href: 'https://www.facebook.com/qalertapps', // Assuming this is the profile/page URL
+      value: 'qalertapp',
+      href: 'https://www.facebook.com/qalertapp', // Assuming this is the profile/page URL
     },
     {
       icon: LocationPin,

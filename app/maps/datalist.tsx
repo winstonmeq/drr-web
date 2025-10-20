@@ -1,14 +1,13 @@
 'use client'
 
-import moment from "moment";
 import React, { useState} from "react";
-import {
-  FaFire,
-  FaAmbulance,
-  FaWater,
-  FaMountain,
-  FaExclamationTriangle,
-} from "react-icons/fa";
+// import {
+//   FaFire,
+//   FaAmbulance,
+//   FaWater,
+//   FaMountain,
+//   FaExclamationTriangle,
+// } from "react-icons/fa";
 import { Button } from "@/components/ui/button";
 import PostModal from "./postModal";
 import IncLocModal from "./IncLocModal";
@@ -58,13 +57,13 @@ const DataList: React.FC<DataListProps> = ({ locations, onSelectLocation, onUpda
     setIsModalOpen2(!isModalOpen2);
   };
 
-  const handlePostClick = (event: React.MouseEvent, location: EmergencyData) => {
-    event.stopPropagation();
-    onSelectLocation(null);
-    setSelectedLocation(location);
-    setSelectedItemId(location.id);
-    toggleModal();
-  };
+  // const handlePostClick = (event: React.MouseEvent, location: EmergencyData) => {
+  //   event.stopPropagation();
+  //   onSelectLocation(null);
+  //   setSelectedLocation(location);
+  //   setSelectedItemId(location.id);
+  //   toggleModal();
+  // };
 
   const handleLocationIncident = (location: EmergencyData) => {
     onSelectLocation(null); 
@@ -79,22 +78,22 @@ const DataList: React.FC<DataListProps> = ({ locations, onSelectLocation, onUpda
     setSelectedItemId(location.id);
   };
 
-  const getEmergencyIcon = (emergency: string) => {
-    const type = emergency.toLowerCase();
-    switch (type) {
-      case "fire":
-        return <FaFire className="text-red-600" size={24} />;
-      case "ambulance":
-      case "medical":
-        return <FaAmbulance className="text-orange-700" size={24} />;
-      case "flood":
-        return <FaWater className="text-blue-400" size={24} />;
-      case "landslide":
-        return <FaMountain className="text-yellow-600" size={24} />;
-      default:
-        return <FaExclamationTriangle className="text-yellow-500" size={24} />;
-    }
-  };
+  // const getEmergencyIcon = (emergency: string) => {
+  //   const type = emergency.toLowerCase();
+  //   switch (type) {
+  //     case "fire":
+  //       return <FaFire className="text-red-600" size={24} />;
+  //     case "ambulance":
+  //     case "medical":
+  //       return <FaAmbulance className="text-orange-700" size={24} />;
+  //     case "flood":
+  //       return <FaWater className="text-blue-400" size={24} />;
+  //     case "landslide":
+  //       return <FaMountain className="text-yellow-600" size={24} />;
+  //     default:
+  //       return <FaExclamationTriangle className="text-yellow-500" size={24} />;
+  //   }
+  // };
 
 const unverifiedCount = locations.filter((location) => !location.verified).length;
 
@@ -111,41 +110,41 @@ const unverifiedCount = locations.filter((location) => !location.verified).lengt
           {locations.map((location) => (
             <div
               key={location.id}
-              // className={`border-l-4 ${
-              //   location.verified ? ' border-green-600 rounded-xl' : ' border-red-600 rounded-xl'
-              // }`}
+              className={`border-l-4 ${
+                location.verified ? ' border-green-600 rounded-xl' : ' border-red-600 rounded-xl'
+              }`}
             >
-              <div className={`rounded-lg p-4 sm:p-5 hover:bg-gray-700 transition-colors duration-200 border border-gray-600 ${location.verified?'bg-green-800':'bg-red-900'} `}>
-                <div className="grid gap-2 sm:grid-cols-1 md:grid-cols-3 lg:grid-cols-3">
+              <div className={`rounded-lg p-4 sm:p-4 hover:bg-gray-700 transition-colors duration-200 border border-gray-600 ${location.verified?'bg-green-800':'bg-red-900'} `}>
+                <div className="grid gap-2 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-2">
                   <div onClick={() => handleLocationIncident(location)} className="flex-1 cursor-pointer">
                     <div className="flex items-center justify-start">
                       <div className="flex-shrink-0">
-                        {getEmergencyIcon(location.emergency)}
+                        <Image width={20} height={20} src={location.photoURL || '/no-image.png'} alt="Location Image" className="w-full h-full object-cover rounded-lg" />
                       </div>
                       <h3 className="text-base sm:text-lg font-bold text-white uppercase pl-4">
                         {location.emergency}
                       </h3>
                     </div>
                     <p className="text-xs sm:text-sm text-gray-300 mt-2">
-                      Location: <span className="font-bold text-white">{location.barangay}</span> 
+                      Status: <span className="font-bold text-white">{location.verified}</span> 
                     </p>
-                    <p className="text-xs sm:text-sm text-gray-300 mt-1">
+                    {/* <p className="text-xs sm:text-sm text-gray-300 mt-1">
                       Sender: {location.name}
-                    </p>
-                    <div className="mt-1 text-xs sm:text-sm text-gray-200">
+                    </p> */}
+                    {/* <div className="mt-1 text-xs sm:text-sm text-gray-200">
                       <p>Mobile: {location.mobile}</p>
-                    </div>
-                    <div className="mt-2 flex items-center space-x-2">
+                    </div> */}
+                    {/* <div className="mt-2 flex items-center space-x-2">
                      <span className="text-xs text-gray-300">
                         {moment(location.createdAt).fromNow().toUpperCase()}
                       </span>
-                    </div>
+                    </div> */}
                   </div>
-                  <div className="flex items-center justify-center">
+                  {/* <div className="flex items-center justify-center">
                     <Image width={30} height={30} src={location.photoURL || '/no-image.png'} alt="Location Image" className="w-full h-32 object-cover rounded-lg" />
-                  </div>
+                  </div> */}
 
-                  <div className="grid grid-rows-2 p-2 gap-2 items-center">
+                  <div className="grid p-2 gap-2 items-center">
                     <Button 
                       className={`w-full sm:w-auto hover:bg-gray-600 transition-colors duration-200 cursor-pointer text-xs sm:text-sm ${
                         selectedItemId === location.id ? 'bg-gray-800' : ''
@@ -155,14 +154,14 @@ const unverifiedCount = locations.filter((location) => !location.verified).lengt
                       Maps
                     </Button>
 
-                    <Button 
+                    {/* <Button 
                       className={`w-full sm:w-auto hover:bg-gray-600 transition-colors duration-200 cursor-pointer text-xs sm:text-sm ${
                         selectedItemId === location.id ? 'bg-gray-800' : ''
                       }`} 
                       onClick={(e) => handlePostClick(e, location)}
                     >
                       Posts
-                    </Button>
+                    </Button> */}
                   </div>
                 </div>
               </div>

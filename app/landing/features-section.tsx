@@ -40,12 +40,12 @@ export default function FeaturesSection({ id }: FeaturesSectionProps) {
     },
     {
       icon: BookMarked,
-      title: 'Resource Directory',
-      description: 'Access a curated list of emergency resources, shelters, and contacts tailored to your location. Find help when you need it most.',
+      title: 'Smart Geofencing Technology',
+      description: 'The intelligent mapping system that defines the digital boundaries of each municipality. It automatically detects a user’s location and routes alerts and features to the right LGU.',
        content: (
          <Image 
           src="/images/q5.png" 
-          alt="Resource Directory Preview" 
+          alt="Geofencing" 
           width={600} 
           height={400} 
           className="rounded-md mt-2"

@@ -1,6 +1,6 @@
 import Image from 'next/image';
-import { Button } from '@/components/ui/button';
-import { Download } from 'lucide-react';
+// import { Button } from '@/components/ui/button';
+// import { Download } from 'lucide-react';
 import Link from 'next/link';
 
 export default function CtaSection() {
@@ -16,18 +16,7 @@ export default function CtaSection() {
           </p>
         </div>
         <div className="mx-auto w-full max-w-sm space-y-2">
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            {/* <Button asChild size="lg" variant="secondary" className="bg-orange-400 hover:bg-accent/90 text-accent-foreground shadow-lg transition-transform hover:scale-105">
-              <Link href="#">
-                <Download className="mr-2 h-5 w-5" /> Download for iOS
-              </Link>
-            </Button> */}
-            <Button asChild size="lg" variant="secondary" className="bg-orange-400 hover:bg-accent/90 text-accent-foreground shadow-lg transition-transform hover:scale-105">
-              <Link href="#">
-                <Download className="mr-2 h-5 w-5" /> Download for Android
-              </Link>
-            </Button>
-          </div>
+        
            <div className="flex justify-center gap-4 mt-6">
             {/* <Link href="#" aria-label="Download on the App Store">
               <Image 
@@ -39,7 +28,7 @@ export default function CtaSection() {
                 data-ai-hint="app store"
               />
             </Link> */}
-            <Link href="#" aria-label="Get it on Google Play">
+            <Link href="https://play.google.com/store/apps/details?id=com.alertify.app&hl=en" aria-label="Get it on Google Play">
               <Image 
                 src="/images/google.png" 
                 alt="Google Play Badge" 

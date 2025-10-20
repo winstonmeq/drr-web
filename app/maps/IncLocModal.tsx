@@ -24,7 +24,7 @@ interface IncLocModalProps {
   onUpdate: () => void;
 }
 
-const IncLocModal: React.FC<IncLocModalProps> = ({ selectedLocation, onClose, onUpdate }) => {
+const IncLocModal: React.FC<IncLocModalProps> = ({ selectedLocation, onClose}) => {
   const [formData, setFormData] = useState<EmergencyData>(
     selectedLocation || {
       id: "",
@@ -43,50 +43,51 @@ const IncLocModal: React.FC<IncLocModalProps> = ({ selectedLocation, onClose, on
     }
   );
 
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState<string | null>(null);
+  const [isLoading,] = useState(false);
+  const [error, ] = useState<string | null>(null);
+  const [success,] = useState<string | null>(null);
 
 
   // Update form data when selectedLocation changes
   useEffect(() => {
     if (selectedLocation) {
+      
       setFormData(selectedLocation);
     }
   }, [selectedLocation]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsLoading(true);
-    setError(null);
-    setSuccess(null);
+  // const handleSubmit = async (e: React.FormEvent) => {
+  //   e.preventDefault();
+  //   setIsLoading(true);
+  //   setError(null);
+  //   setSuccess(null);
 
-    try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_DOMAIN}/api/emergency/${formData.id}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
-      });
+  //   try {
+  //     const res = await fetch(`${process.env.NEXT_PUBLIC_DOMAIN}/api/emergency/${formData.id}`, {
+  //       method: "PUT",
+  //       headers: { "Content-Type": "application/json" },
+  //       body: JSON.stringify(formData),
+  //     });
 
-      const responseData = await res.json();
+  //     const responseData = await res.json();
 
-      console.log(responseData)
+  //     console.log(responseData)
 
-      if (!res.ok) {
-        throw new Error(responseData.error || "Failed to update incident");
-      }
-      setSuccess("Incident updated successfully");
+  //     if (!res.ok) {
+  //       throw new Error(responseData.error || "Failed to update incident");
+  //     }
+  //     setSuccess("Incident updated successfully");
 
-      onUpdate()
-      onClose();
+  //     onUpdate()
+  //     onClose();
 
 
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Unknown error occurred");
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  //   } catch (err) {
+  //     setError(err instanceof Error ? err.message : "Unknown error occurred");
+  //   } finally {
+  //     setIsLoading(false);
+  //   }
+  // };
 
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
@@ -119,9 +120,9 @@ const IncLocModal: React.FC<IncLocModalProps> = ({ selectedLocation, onClose, on
         </div>
 
         {/* Form */}
-        <form onSubmit={handleSubmit} className="mt-4 space-y-4">
+        {/* <form onSubmit={handleSubmit} className="mt-4 space-y-4"> */}
           {/* Emergency Type */}
-          <div>
+          {/* <div>
             <label htmlFor="emergency" className="block text-white mb-1">
               Emergency Type *
             </label>
@@ -135,9 +136,9 @@ const IncLocModal: React.FC<IncLocModalProps> = ({ selectedLocation, onClose, on
               className="w-full p-2 bg-gray-700 text-red-500 rounded border border-gray-600"
               disabled={isLoading}
             />
-          </div>
+          </div> */}
 
-          {/* Incident Location */}
+          {/* Incident Location
           <div>
             <label htmlFor="location" className="block text-white mb-1">
               Incident Location
@@ -152,10 +153,10 @@ const IncLocModal: React.FC<IncLocModalProps> = ({ selectedLocation, onClose, on
               className="w-full p-2 bg-gray-700 text-red-500 rounded border border-gray-600"
               disabled={isLoading}
             />
-          </div>
+          </div> */}
 
           {/* Address */}
-          <div>
+          {/* <div>
             <label htmlFor="barangay" className="block text-white mb-1">
               Nearby 200 Meters
             </label>
@@ -169,21 +170,21 @@ const IncLocModal: React.FC<IncLocModalProps> = ({ selectedLocation, onClose, on
               className="w-full p-2 bg-gray-700 text-white rounded border border-gray-600"
               disabled={isLoading}
             />
-          </div>
+          </div> */}
 
           {/* Incident Photo */}
           <div>
             <Image
-              src={formData.photoURL || "/images/no-image.png"}
+              src={formData.photoURL && formData.photoURL.trim() !== "" ? formData.photoURL : "/images/no-image.png"}
               alt="Incident Photo"
-              width={300}
-              height={300}
+              width={600}
+              height={600}
               className="w-full max-h-64 object-cover rounded mb-2"
               priority={true}
-              onError={(e) => {
-                console.error("Image failed to load:", formData.photoURL);
-                e.currentTarget.src = "/images/no-image.png";
-              }}
+              // onError={(e) => {
+              //   console.error("Image failed to load:", formData.photoURL);
+              //   e.currentTarget.src = "/images/no-image.png";
+              // }}
             />
           </div>
 
@@ -246,17 +247,17 @@ const IncLocModal: React.FC<IncLocModalProps> = ({ selectedLocation, onClose, on
               <label htmlFor="verified" className="block text-white mb-1">
                 Verified
               </label>
-              <select
+              <input
                 id="verified"
                 name="verified"
-                value={formData.verified.toString()}
+                value={formData.verified}
                 onChange={handleInputChange}
                 className="w-full p-2 bg-gray-700 text-white rounded border border-gray-600"
                 disabled={isLoading}
               >
-                <option value="true">True</option>
-                <option value="false">False</option>
-              </select>
+                {/* <option value="true">True</option>
+                <option value="false">False</option> */}
+              </input>
             </div>
           </div>
 
@@ -270,13 +271,13 @@ const IncLocModal: React.FC<IncLocModalProps> = ({ selectedLocation, onClose, on
             >
               Close
             </button>
-            <button
+            {/* <button
               type="submit"
               disabled={isLoading}
               className="px-4 py-2 bg-red-600 text-white text-sm font-semibold uppercase rounded hover:bg-red-500 transition-colors duration-200"
             >
               {isLoading ? "Saving..." : "Save"}
-            </button>
+            </button> */}
           </div>
 
           {/* Error and Success Messages */}
@@ -286,7 +287,7 @@ const IncLocModal: React.FC<IncLocModalProps> = ({ selectedLocation, onClose, on
           {success && (
             <div className="mt-4 text-green-500 text-sm">{success}</div>
           )}
-        </form>
+        {/* </form> */}
       </div>
     </div>
   );
