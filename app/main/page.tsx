@@ -83,6 +83,21 @@ const [selectedPostData, setSelectedPostData] = useState<EmergencyData | null>(n
     }
   };
 
+// Auto-refresh every 3 minutes
+useEffect(() => {
+  if (!userData?.munId || !userData?.provId) return;
+
+  // Initial fetch
+  fetchEmergencyData(userData.munId, userData.provId);
+
+  // Refresh every 3 minutes (180,000 ms)
+  const intervalId = setInterval(() => {
+    fetchEmergencyData(userData.munId, userData.provId);
+  }, 180000);
+
+  // Cleanup when userData changes or component unmounts
+  return () => clearInterval(intervalId);
+}, [userData]);
 
   
   // Load user data on mount
@@ -114,7 +129,7 @@ const [selectedPostData, setSelectedPostData] = useState<EmergencyData | null>(n
     <div className="flex min-h-screen bg-gray-50">
       {/* Sidebar */}
       <aside className="w-64 bg-white shadow-md p-4 hidden md:block">
-        <Link href="/maps"><h2 className="text-xl font-bold mb-6 text-gray-800">Back</h2></Link>
+        <Link href={userData ? `/maps?munId=${userData.munId}&provId=${userData.provId}` : '/weblogin'}><h2 className="text-xl font-bold mb-6 text-gray-800">Back</h2></Link>
         <h2 className="text-xl font-bold mb-6 text-gray-800">{userData?.wname}</h2>
 
         <nav className="space-y-2">

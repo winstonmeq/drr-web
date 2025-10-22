@@ -39,6 +39,7 @@ interface UserData {
   updatedAt: string;
   munId: string;
   provId: string;
+  plan?: string; // 👈 add plan (e.g. "free", "premium")
 }
 
 interface AuthData {
@@ -60,12 +61,20 @@ const ReportsSection: React.FC = () => {
 
   const tableRef = useRef<HTMLDivElement>(null);
 
+  // Helper: compute difference in days
+  const getDateDiffInDays = (start: string, end: string) => {
+    const s = new Date(start);
+    const e = new Date(end);
+    return Math.floor((e.getTime() - s.getTime()) / (1000 * 60 * 60 * 24));
+  };
+
   const fetchEmergency = useCallback(async (munId: string, provId: string) => {
     setLoading(true);
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_DOMAIN}/api/emergency?munId=${munId}&provId=${provId}`, {
-        cache: "no-store",
-      });
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_DOMAIN}/api/emergency?munId=${munId}&provId=${provId}`,
+        { cache: "no-store" }
+      );
       const result = await res.json();
       setData(result.emergency_data || []);
       setTotalPages(Math.ceil((result.emergency_data?.length || 0) / rowsPerPage));
@@ -91,6 +100,16 @@ const ReportsSection: React.FC = () => {
 
   const handleFilter = async () => {
     if (!userData) return;
+
+    // ✅ Free plan users can only filter up to 7 days
+    if (userData.plan === "free") {
+      const diff = getDateDiffInDays(startDate, endDate);
+      if (diff > 7) {
+        alert("Free plan users can only view reports within a 7-day range.");
+        return;
+      }
+    }
+
     setLoading(true);
     try {
       const res = await fetch(
@@ -105,6 +124,27 @@ const ReportsSection: React.FC = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  // Handle Start Date
+  const handleStartDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newStart = e.target.value;
+    setStartDate(newStart);
+
+    // ✅ For free plan: adjust end date limit automatically
+    if (userData?.plan === "free") {
+      const maxEnd = new Date(newStart);
+      maxEnd.setDate(maxEnd.getDate() + 7);
+      const maxEndStr = maxEnd.toISOString().split("T")[0];
+      if (new Date(endDate) > maxEnd) {
+        setEndDate(maxEndStr);
+      }
+    }
+  };
+
+  const handleEndDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newEnd = e.target.value;
+    setEndDate(newEnd);
   };
 
   const handlePrint = () => {
@@ -126,7 +166,6 @@ const ReportsSection: React.FC = () => {
         </body>
       </html>
     `;
-
     const printWindow = window.open("", "_blank");
     if (printWindow) {
       printWindow.document.write(printContent);
@@ -138,22 +177,37 @@ const ReportsSection: React.FC = () => {
   const startIndex = (currentPage - 1) * rowsPerPage;
   const paginatedData = data.slice(startIndex, startIndex + rowsPerPage);
 
-  if (loading)
-    return <div className="flex justify-center py-10">Loading...</div>;
+  if (loading) return <div className="flex justify-center py-10">Loading...</div>;
+  if (error) return <div className="text-center text-red-500 py-10">{error}</div>;
 
-  if (error)
-    return <div className="text-center text-red-500 py-10">{error}</div>;
+  // ✅ Compute date limit for the UI
+  const maxEndDate =
+    userData?.plan === "free"
+      ? new Date(new Date(startDate).setDate(new Date(startDate).getDate() + 7))
+          .toISOString()
+          .split("T")[0]
+      : undefined;
 
   return (
     <div>
       <div className="flex flex-wrap gap-4 mb-4 items-end">
         <div>
           <Label>Start Date</Label>
-          <Input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} />
+          <Input
+            type="date"
+            value={startDate}
+            onChange={handleStartDateChange}
+          />
         </div>
         <div>
           <Label>End Date</Label>
-          <Input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} />
+          <Input
+            type="date"
+            value={endDate}
+            onChange={handleEndDateChange}
+            min={startDate}
+            max={userData?.plan === "free" ? maxEndDate : undefined} // 👈 restricts 7-day range
+          />
         </div>
         <Button onClick={handleFilter}>Filter</Button>
         <Button onClick={handlePrint}>Print</Button>
@@ -189,13 +243,19 @@ const ReportsSection: React.FC = () => {
       </div>
 
       <div className="flex justify-center mt-4 gap-4">
-        <Button disabled={currentPage === 1} onClick={() => setCurrentPage((p) => p - 1)}>
+        <Button
+          disabled={currentPage === 1}
+          onClick={() => setCurrentPage((p) => p - 1)}
+        >
           Previous
         </Button>
         <span>
           Page {currentPage} of {totalPages}
         </span>
-        <Button disabled={currentPage === totalPages} onClick={() => setCurrentPage((p) => p + 1)}>
+        <Button
+          disabled={currentPage === totalPages}
+          onClick={() => setCurrentPage((p) => p + 1)}
+        >
           Next
         </Button>
       </div>

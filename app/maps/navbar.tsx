@@ -3,34 +3,31 @@
 import React, { useState, useEffect } from "react";
 import { 
   FaHome, 
-  FaBell, 
-  FaUser, 
-  FaShieldAlt, 
-  FaSignOutAlt 
+  FaSignOutAlt, 
+  FaShieldAlt 
 } from "react-icons/fa";
 import AlertModal from "./alertModal";
 import ReportModal from "./reportModal";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 
-
 interface UserData {
-    id: string;
-    email: string;
-    wname: string;
-    lat: string;
-    long: string;
-    zoom: string;
-    mobile: string;
-    createdAt: string;
-    updatedAt: string;
-    munId: string;
-    provId: string;
+  id: string;
+  email: string;
+  wname: string;
+  lat: string;
+  long: string;
+  zoom: string;
+  mobile: string;
+  createdAt: string;
+  updatedAt: string;
+  munId: string;
+  provId: string;
 }
 
 interface AuthData {
-    token: string;
-    user: UserData;
+  token: string;
+  user: UserData;
 }
 
 const TacticalNavbar: React.FC = () => {
@@ -38,58 +35,55 @@ const TacticalNavbar: React.FC = () => {
   const [isModalOpen2, setIsModalOpen2] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [userData, setUserData] = useState<UserData | null>(null);
-  
+  const [currentTime, setCurrentTime] = useState<string>("");
 
   const router = useRouter();
 
-  const toggleModal = () => {
-    setIsModalOpen(!isModalOpen);
-  };
-
-  const toggleModal2 = () => {
-    setIsModalOpen2(!isModalOpen2);
-  };
-
-  const toggleMobileMenu = () => {
-    setIsMobileMenuOpen(!isMobileMenuOpen);
-  };
+  const toggleModal = () => setIsModalOpen(!isModalOpen);
+  const toggleModal2 = () => setIsModalOpen2(!isModalOpen2);
+  const toggleMobileMenu = () => setIsMobileMenuOpen(!isMobileMenuOpen);
 
   const Logout = async () => {
-    localStorage.removeItem('authData');
-    router.push('/weblogin');
+    localStorage.removeItem("authData");
+    router.push("/weblogin");
   };
 
+  // ✅ Load user data
+  useEffect(() => {
+    const token = typeof window !== "undefined" ? localStorage.getItem("authData") : null;
+    if (!token) {
+      router.push("/weblogin");
+      return;
+    }
+    const authData: AuthData = JSON.parse(token);
+    setUserData(authData.user);
+  }, []);
 
-   useEffect(() => {
-          const token = typeof window !== 'undefined' ? localStorage.getItem("authData") : null;
-          if (!token) {
-              router.push("/weblogin");
-              return;
-          }
-  
-          const authData: AuthData = JSON.parse(token);
-          setUserData(authData.user);
-  
-        
-      }, []);
-
+  // ✅ Digital Clock Logic
+  useEffect(() => {
+    const updateClock = () => {
+      const now = new Date();
+      const timeString = now.toLocaleTimeString("en-US", { hour12: false });
+      setCurrentTime(timeString);
+    };
+    updateClock(); // Initialize immediately
+    const timer = setInterval(updateClock, 1000);
+    return () => clearInterval(timer);
+  }, []);
 
   return (
     <>
       <nav className="bg-gray-900 text-white p-4 w-full shadow-lg border-b border-gray-700">
         <div className="max-w-7xl mx-auto">
-          {/* Logo/Title and Mobile Menu Toggle */}
+          {/* Mobile Header */}
           <div className="flex items-center justify-between lg:hidden">
             <div className="flex items-center space-x-3">
               <FaShieldAlt className="text-green-500" size={28} />
               <h1 className="text-xl font-bold uppercase tracking-wider">
-                MDRRMO Command Center
+                DRRM Command Center
               </h1>
             </div>
-            <button
-              onClick={toggleMobileMenu}
-              className="text-white focus:outline-none"
-            >
+            <button onClick={toggleMobileMenu} className="text-white focus:outline-none">
               <svg
                 className="w-6 h-6"
                 fill="none"
@@ -107,46 +101,29 @@ const TacticalNavbar: React.FC = () => {
             </button>
           </div>
 
-          {/* Navigation Links - Grid Layout for Desktop, Hidden on Mobile */}
-          <div className="hidden lg:grid lg:grid-cols-2 lg:items-center lg:gap-4">
+          {/* Desktop Navigation */}
+          <div className="hidden lg:flex lg:items-center lg:justify-between">
             <div className="flex items-center space-x-3">
               <FaShieldAlt className="text-green-500" size={28} />
               <h1 className="text-xl font-bold uppercase tracking-wider">
-                {userData?.wname} MDRRMO Command Center
+                {userData?.wname} DRRM Command Center
               </h1>
             </div>
-            <div className="flex items-center justify-end space-x-6">
+
+            <div className="flex items-center space-x-6">
               <Link
-                href="/dashboard"
+                href="/main"
                 className="flex items-center space-x-2 text-gray-300 hover:text-green-500 transition-colors duration-200"
               >
                 <FaHome size={20} />
-                <span className="text-sm font-semibold uppercase">Dashboard</span>
+                <span className="text-sm font-semibold uppercase">Main</span>
               </Link>
-              <Link
-                href="/maps"
-                className="flex items-center space-x-2 text-gray-300 hover:text-green-500 transition-colors duration-200"
-              >
-                <FaUser size={20} />
-                <span className="text-sm font-semibold uppercase">Maps</span>
-              </Link>
-              <button
-                onClick={toggleModal}
-                className="flex items-center space-x-2 text-gray-300 cursor-pointer hover:text-green-500 transition-colors duration-200 relative"
-              >
-                <FaBell size={20} />
-                <span className="text-sm font-semibold uppercase">Alerts</span>
-                <span className="absolute -top-1 -right-1 bg-red-600 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
-                  3
-                </span>
-              </button>
-              <button
-                onClick={toggleModal2}
-                className="flex items-center space-x-2 text-gray-300 cursor-pointer hover:text-green-500 transition-colors duration-200"
-              >
-                <FaShieldAlt size={20} />
-                <span className="text-sm font-semibold uppercase">Reports</span>
-              </button>
+
+              {/* ✅ Digital Clock */}
+              <div className="text-lg font-bold text-green-400 font-mono bg-black px-4 py-1 rounded-md shadow-inner tracking-widest">
+                {currentTime || "--:--:--"}
+              </div>
+
               <button
                 onClick={Logout}
                 className="flex items-center space-x-2 text-gray-300 cursor-pointer hover:text-green-500 transition-colors duration-200"
@@ -161,36 +138,17 @@ const TacticalNavbar: React.FC = () => {
           {isMobileMenuOpen && (
             <div className="lg:hidden mt-4 space-y-2">
               <Link
-                href="/dashboard"
+                href="/main"
                 className="flex items-center space-x-2 text-gray-300 hover:text-green-500 transition-colors duration-200"
               >
                 <FaHome size={20} />
-                <span className="text-sm font-semibold uppercase">Dashboard</span>
+                <span className="text-sm font-semibold uppercase">Main</span>
               </Link>
-              <Link
-                href="/maps"
-                className="flex items-center space-x-2 text-gray-300 hover:text-green-500 transition-colors duration-200"
-              >
-                <FaUser size={20} />
-                <span className="text-sm font-semibold uppercase">Maps</span>
-              </Link>
-              <button
-                onClick={toggleModal}
-                className="flex items-center space-x-2 text-gray-300 cursor-pointer hover:text-green-500 transition-colors duration-200 w-full text-left relative"
-              >
-                <FaBell size={20} />
-                <span className="text-sm font-semibold uppercase">Alerts</span>
-                <span className="absolute -top-1 -right-1 bg-red-600 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
-                  3
-                </span>
-              </button>
-              <button
-                onClick={toggleModal2}
-                className="flex items-center space-x-2 text-gray-300 cursor-pointer hover:text-green-500 transition-colors duration-200 w-full text-left"
-              >
-                <FaShieldAlt size={20} />
-                <span className="text-sm font-semibold uppercase">Reports</span>
-              </button>
+
+              <div className="text-sm font-mono text-gray-400 bg-gray-800 px-3 py-1 rounded-md inline-block">
+                {currentTime || "--:--:--"}
+              </div>
+
               <button
                 onClick={Logout}
                 className="flex items-center space-x-2 text-gray-300 cursor-pointer hover:text-green-500 transition-colors duration-200 w-full text-left"
@@ -203,18 +161,20 @@ const TacticalNavbar: React.FC = () => {
         </div>
       </nav>
 
-      {/* Render the Modal */}
-      {isModalOpen && 
-             <AlertModal 
-             lat={userData?.lat ?? ''}
-             lng={userData?.long ?? ''}
-             mobile={userData?.mobile ?? ''}
-             webUserId={userData?.id ?? ''}
-             munId={userData?.munId ?? ''}   
-             provId={userData?.provId ?? ''}
-             munName={userData?.wname ?? ''}             
-             
-             onClose={toggleModal} />}
+      {/* Modals */}
+      {isModalOpen && (
+        <AlertModal
+          lat={userData?.lat ?? ""}
+          lng={userData?.long ?? ""}
+          mobile={userData?.mobile ?? ""}
+          webUserId={userData?.id ?? ""}
+          munId={userData?.munId ?? ""}
+          provId={userData?.provId ?? ""}
+          munName={userData?.wname ?? ""}
+          onClose={toggleModal}
+        />
+      )}
+
       {isModalOpen2 && <ReportModal onClose={toggleModal2} />}
     </>
   );
