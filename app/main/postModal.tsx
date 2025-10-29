@@ -1,10 +1,11 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, {useState } from 'react';
 import { motion } from 'framer-motion';
 import { X, MapPin, Phone, User, Clock, AlertTriangle, FileText } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Image from 'next/image';
+import FindLocation from './findLocation';
 
 interface EmergencyData {
   id: string;
@@ -24,6 +25,8 @@ interface EmergencyData {
   munId: string;
 }
 
+
+
 interface PostModalProps {
   onClose: () => void;
   data: EmergencyData;
@@ -35,6 +38,8 @@ const PostModal: React.FC<PostModalProps> = ({ onClose, data, selectedLocation, 
   const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState<EmergencyData>({ ...data });
 
+
+
   // ✅ Update textarea for "situation"
   const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setFormData({
@@ -43,7 +48,9 @@ const PostModal: React.FC<PostModalProps> = ({ onClose, data, selectedLocation, 
     });
   };
 
+ 
 
+  
   const handleSubmit = async () => {
   setIsLoading(true);
 
@@ -123,7 +130,7 @@ const PostModal: React.FC<PostModalProps> = ({ onClose, data, selectedLocation, 
         className="relative w-full max-w-lg rounded-2xl bg-white shadow-2xl border border-gray-100 overflow-hidden"
       >
         {/* Header */}
-        <div className="flex items-center justify-between p-5 border-b bg-gradient-to-r from-blue-600 to-indigo-600">
+        <div className="flex items-center justify-between p-5 border-b bg-gradient-to-r from-black to-indigo-600">
           <h2 className="text-lg font-semibold text-white flex items-center gap-2">
             <AlertTriangle className="w-5 h-5" /> Emergency: {formData.emergency}
           </h2>
@@ -149,6 +156,15 @@ const PostModal: React.FC<PostModalProps> = ({ onClose, data, selectedLocation, 
           </div>
 
           <div className="space-y-3 text-gray-700">
+            
+            <div className="text-xs text-gray-600 pl-2">
+              <p>
+                <span className="font-medium">Latitude:</span> {selectedLocation.lat}{' '}
+                <span className="font-medium">Longitude:</span> {selectedLocation.long}
+              </p>
+
+            </div>
+
             <div className="flex items-center gap-2">
               <User className="w-4 h-4 text-gray-500" />
               <span className="font-semibold">Sender:</span>
@@ -164,16 +180,10 @@ const PostModal: React.FC<PostModalProps> = ({ onClose, data, selectedLocation, 
             <div className="flex items-center gap-2">
               <MapPin className="w-4 h-4 text-gray-500" />
               <span className="font-semibold">Location:</span>
-              <span>
-                {formData.barangay}, {formData.munName}
-              </span>
-            </div>
 
-            <div className="text-sm text-gray-600 pl-6">
-              <p>
-                <span className="font-medium">Latitude:</span> {selectedLocation.lat}{' '}
-                <span className="font-medium">Longitude:</span> {selectedLocation.long}
-              </p>
+   
+           <FindLocation lat={selectedLocation.lat} long={selectedLocation.long}/>,<span>{formData.munName}</span>
+           
             </div>
 
             {/* ✅ Situation Textarea */}
