@@ -1,11 +1,10 @@
 'use client';
 
-import React, {useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import { X, MapPin, Phone, User, Clock, AlertTriangle, FileText } from 'lucide-react';
+import { X, MapPin, Phone, User, Clock, AlertTriangle, FileText, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Image from 'next/image';
-import FindLocation from './findLocation';
 
 interface EmergencyData {
   id: string;
@@ -25,7 +24,16 @@ interface EmergencyData {
   munId: string;
 }
 
+interface Place {
+  polType: string;
+  name: string;
+}
 
+interface PlaceData {
+  current: Place[];
+  nearby200: Place[];
+  nearby500: Place[];
+}
 
 interface PostModalProps {
   onClose: () => void;
@@ -37,10 +45,31 @@ interface PostModalProps {
 const PostModal: React.FC<PostModalProps> = ({ onClose, data, selectedLocation, webUserId }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState<EmergencyData>({ ...data });
+  const [placeData, setPlaceData] = useState<PlaceData | null>(null);
+  const [loading, setLoading] = useState(false);
 
+  useEffect(() => {
+    if (!selectedLocation.lat || !selectedLocation.long) return;
 
+    const fetchPlace = async () => {
+      setLoading(true);
+      try {
+        const res = await fetch(
+          `https://restapi.qalertapp.com/api/places?lat=${selectedLocation.lat}&long=${selectedLocation.long}`
+        );
+        const data = await res.json();
+        console.log(data);
+        setPlaceData(data);
+      } catch (err) {
+        console.error('Error fetching place data:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  // ✅ Update textarea for "situation"
+    fetchPlace();
+  }, [selectedLocation.lat, selectedLocation.long]);
+
   const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setFormData({
       ...formData,
@@ -48,80 +77,72 @@ const PostModal: React.FC<PostModalProps> = ({ onClose, data, selectedLocation, 
     });
   };
 
- 
-
-  
   const handleSubmit = async () => {
-  setIsLoading(true);
+    setIsLoading(true);
 
-  try {
-    const {
-      id,
-      emergency,
-      lat,
-      long,
-      barangay,
-      munName,
-      name,
-      mobile,
-      photoURL,
-      situation,
-      createdAt,
-      munId,
-      provId,
-    } = formData;
+    try {
+      const {
+        id,
+        emergency,
+        lat,
+        long,
+        barangay,
+        munName,
+        name,
+        mobile,
+        photoURL,
+        situation,
+        createdAt,
+        munId,
+        provId,
+      } = formData;
 
-    // ✅ Match exact data structure required by postNotify
-    const finalData = {
-      id,
-      emergency,
-      lat: selectedLocation.lat || lat,
-      long: selectedLocation.long || long,
-      barangay,
-      munName,
-      name,
-      mobile,
-      verified:true,
-      photoURL,
-      situation,
-      createdAt,
-      munId,
-      provId,
-      webUserId,
-    };
+      const finalData = {
+        id,
+        emergency,
+        lat: selectedLocation.lat || lat,
+        long: selectedLocation.long || long,
+        barangay: placeData?.current?.[0]?.name || barangay,
+        munName,
+        name,
+        mobile,
+        verified: true,
+        photoURL,
+        situation,
+        createdAt,
+        munId,
+        provId,
+        webUserId,
+      };
 
-    console.log("Submitting final data:", finalData);
+      console.log("Submitting final data:", finalData);
 
-    const response = await fetch(
-      `${process.env.NEXT_PUBLIC_DOMAIN}/api/postnotify?token=mySecretAlertifyToken2025`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(finalData),
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_DOMAIN}/api/postnotify?token=mySecretAlertifyToken2025`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(finalData),
+        }
+      );
+
+      if (response.ok) {
+        alert("Emergency posted successfully!");
+        onClose();
+      } else {
+        const errorData = await response.json();
+        alert(`Failed to post emergency: ${errorData.message || "Please try again."}`);
       }
-    );
-
-    if (response.ok) {
-      alert("Emergency posted successfully!");
-      onClose();
-    } else {
-      const errorData = await response.json();
-      alert(`Failed to post emergency: ${errorData.message || "Please try again."}`);
+    } catch (error) {
+      console.error("Error posting emergency:", error);
+      alert("An error occurred while posting. Please try again.");
+    } finally {
+      setIsLoading(false);
     }
-  } catch (error) {
-    console.error("Error posting emergency:", error);
-    alert("An error occurred while posting. Please try again.");
-  } finally {
-    setIsLoading(false);
-  }
-};
-
-
-
+  };
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
-      {/* Animated modal */}
       <motion.div
         initial={{ opacity: 0, scale: 0.95, y: 20 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -156,13 +177,11 @@ const PostModal: React.FC<PostModalProps> = ({ onClose, data, selectedLocation, 
           </div>
 
           <div className="space-y-3 text-gray-700">
-            
             <div className="text-xs text-gray-600 pl-2">
               <p>
                 <span className="font-medium">Latitude:</span> {selectedLocation.lat}{' '}
                 <span className="font-medium">Longitude:</span> {selectedLocation.long}
               </p>
-
             </div>
 
             <div className="flex items-center gap-2">
@@ -177,16 +196,23 @@ const PostModal: React.FC<PostModalProps> = ({ onClose, data, selectedLocation, 
               <span>{formData.mobile}</span>
             </div>
 
+            {/* Location with Loading Spinner */}
             <div className="flex items-center gap-2">
               <MapPin className="w-4 h-4 text-gray-500" />
               <span className="font-semibold">Location:</span>
-
-   
-           <FindLocation lat={selectedLocation.lat} long={selectedLocation.long}/>,<span>{formData.munName}</span>
-           
+              {loading ? (
+                <div className="flex items-center gap-2 text-gray-500">
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  <span className="text-sm">Fetching location...</span>
+                </div>
+              ) : placeData?.current?.[0]?.name ? (
+                <span>{placeData.current[0].name}</span>
+              ) : (
+                <span className="text-gray-400">Unknown location</span>
+              )}
             </div>
 
-            {/* ✅ Situation Textarea */}
+            {/* Situation Textarea */}
             <div className="flex flex-col gap-1 mt-4">
               <label
                 htmlFor="situation"
@@ -225,9 +251,16 @@ const PostModal: React.FC<PostModalProps> = ({ onClose, data, selectedLocation, 
           <Button
             disabled={isLoading}
             onClick={handleSubmit}
-            className="bg-blue-600 hover:bg-blue-700 text-white shadow-md"
+            className="bg-blue-600 hover:bg-blue-700 text-white shadow-md flex items-center gap-2"
           >
-            {isLoading ? 'Posting...' : 'Post Now'}
+            {isLoading ? (
+              <>
+                <Loader2 className="w-4 h-4 animate-spin" />
+                Posting...
+              </>
+            ) : (
+              'Post Now'
+            )}
           </Button>
         </div>
       </motion.div>
