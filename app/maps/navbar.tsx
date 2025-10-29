@@ -6,8 +6,7 @@ import {
   FaSignOutAlt, 
   FaShieldAlt 
 } from "react-icons/fa";
-import AlertModal from "./alertModal";
-import ReportModal from "./reportModal";
+
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 
@@ -31,16 +30,13 @@ interface AuthData {
 }
 
 const TacticalNavbar: React.FC = () => {
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isModalOpen2, setIsModalOpen2] = useState(false);
+
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [userData, setUserData] = useState<UserData | null>(null);
   const [currentTime, setCurrentTime] = useState<string>("");
 
   const router = useRouter();
 
-  const toggleModal = () => setIsModalOpen(!isModalOpen);
-  const toggleModal2 = () => setIsModalOpen2(!isModalOpen2);
   const toggleMobileMenu = () => setIsMobileMenuOpen(!isMobileMenuOpen);
 
   const Logout = async () => {
@@ -161,21 +157,8 @@ const TacticalNavbar: React.FC = () => {
         </div>
       </nav>
 
-      {/* Modals */}
-      {isModalOpen && (
-        <AlertModal
-          lat={userData?.lat ?? ""}
-          lng={userData?.long ?? ""}
-          mobile={userData?.mobile ?? ""}
-          webUserId={userData?.id ?? ""}
-          munId={userData?.munId ?? ""}
-          provId={userData?.provId ?? ""}
-          munName={userData?.wname ?? ""}
-          onClose={toggleModal}
-        />
-      )}
 
-      {isModalOpen2 && <ReportModal onClose={toggleModal2} />}
+
     </>
   );
 };

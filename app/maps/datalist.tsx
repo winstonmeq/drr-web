@@ -9,7 +9,6 @@ import React, { useState} from "react";
 //   FaExclamationTriangle,
 // } from "react-icons/fa";
 import { Button } from "@/components/ui/button";
-import PostModal from "./postModal";
 import IncLocModal from "./IncLocModal";
 import Image from "next/image";
 
@@ -43,27 +42,17 @@ interface DataListProps {
 
 
 
-const DataList: React.FC<DataListProps> = ({ locations, onSelectLocation, onUpdate, webUserId }) => {
-  const [isModalOpen, setIsModalOpen] = useState(false);
+const DataList: React.FC<DataListProps> = ({ locations, onSelectLocation, onUpdate}) => {
   const [isModalOpen2, setIsModalOpen2] = useState(false);
   const [selectedLocation, setSelectedLocation] = useState<EmergencyData | null>(null);
   const [selectedItemId, setSelectedItemId] = useState<string | null>(null);
 
-  const toggleModal = () => {    
-    setIsModalOpen(!isModalOpen);
-  };
 
   const toggleModal2 = () => {    
     setIsModalOpen2(!isModalOpen2);
   };
 
-  // const handlePostClick = (event: React.MouseEvent, location: EmergencyData) => {
-  //   event.stopPropagation();
-  //   onSelectLocation(null);
-  //   setSelectedLocation(location);
-  //   setSelectedItemId(location.id);
-  //   toggleModal();
-  // };
+ 
 
   const handleLocationIncident = (location: EmergencyData) => {
     onSelectLocation(null); 
@@ -78,25 +67,8 @@ const DataList: React.FC<DataListProps> = ({ locations, onSelectLocation, onUpda
     setSelectedItemId(location.id);
   };
 
-  // const getEmergencyIcon = (emergency: string) => {
-  //   const type = emergency.toLowerCase();
-  //   switch (type) {
-  //     case "fire":
-  //       return <FaFire className="text-red-600" size={24} />;
-  //     case "ambulance":
-  //     case "medical":
-  //       return <FaAmbulance className="text-orange-700" size={24} />;
-  //     case "flood":
-  //       return <FaWater className="text-blue-400" size={24} />;
-  //     case "landslide":
-  //       return <FaMountain className="text-yellow-600" size={24} />;
-  //     default:
-  //       return <FaExclamationTriangle className="text-yellow-500" size={24} />;
-  //   }
-  // };
-
-const unverifiedCount = locations.filter((location) => !location.verified).length;
-
+  
+const unverifiedCount = locations.filter((location) => location.verified !== "verified").length;
   return (
     <div className="w-full p-4 bg-gray-800 min-h-screen overflow-hidden">
       <h2 className="text-xl sm:text-xl font-bold text-white mb-4 tracking-wider pb-2">
@@ -114,12 +86,12 @@ const unverifiedCount = locations.filter((location) => !location.verified).lengt
                 location.verified ? ' border-green-600 rounded-xl' : ' border-red-600 rounded-xl'
               }`}
             >
-              <div className={`rounded-lg p-4 sm:p-4 hover:bg-gray-700 transition-colors duration-200 border border-gray-600 ${location.verified?'bg-green-800':'bg-red-900'} `}>
+              <div className={`rounded-lg p-4 sm:p-4 hover:bg-gray-700 transition-colors duration-200 border border-gray-600 ${location.status == "true" ? 'bg-green-800':'bg-red-900'} `}>
                 <div className="grid gap-2 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-2">
                   <div onClick={() => handleLocationIncident(location)} className="flex-1 cursor-pointer">
                     <div className="flex items-center justify-start">
                       <div className="flex-shrink-0">
-                        <Image width={20} height={20} src={location.photoURL || '/no-image.png'} alt="Location Image" className="w-full h-full object-cover rounded-lg" />
+                        <Image width={20} height={20} src={location.photoURL || '/images/no-image.png'} alt="Location Image" className="w-full h-full object-cover rounded-lg" />
                       </div>
                       <h3 className="text-base sm:text-lg font-bold text-white uppercase pl-4">
                         {location.emergency}
@@ -128,21 +100,9 @@ const unverifiedCount = locations.filter((location) => !location.verified).lengt
                     <p className="text-xs sm:text-sm text-gray-300 mt-2">
                       Status: <span className="font-bold text-white">{location.verified}</span> 
                     </p>
-                    {/* <p className="text-xs sm:text-sm text-gray-300 mt-1">
-                      Sender: {location.name}
-                    </p> */}
-                    {/* <div className="mt-1 text-xs sm:text-sm text-gray-200">
-                      <p>Mobile: {location.mobile}</p>
-                    </div> */}
-                    {/* <div className="mt-2 flex items-center space-x-2">
-                     <span className="text-xs text-gray-300">
-                        {moment(location.createdAt).fromNow().toUpperCase()}
-                      </span>
-                    </div> */}
+                   
                   </div>
-                  {/* <div className="flex items-center justify-center">
-                    <Image width={30} height={30} src={location.photoURL || '/no-image.png'} alt="Location Image" className="w-full h-32 object-cover rounded-lg" />
-                  </div> */}
+                 
 
                   <div className="grid p-2 gap-2 items-center">
                     <Button 
@@ -154,14 +114,6 @@ const unverifiedCount = locations.filter((location) => !location.verified).lengt
                       Maps
                     </Button>
 
-                    {/* <Button 
-                      className={`w-full sm:w-auto hover:bg-gray-600 transition-colors duration-200 cursor-pointer text-xs sm:text-sm ${
-                        selectedItemId === location.id ? 'bg-gray-800' : ''
-                      }`} 
-                      onClick={(e) => handlePostClick(e, location)}
-                    >
-                      Posts
-                    </Button> */}
                   </div>
                 </div>
               </div>
@@ -169,13 +121,6 @@ const unverifiedCount = locations.filter((location) => !location.verified).lengt
           ))}
         </div>
       )}
-      {isModalOpen && <PostModal 
-          selectedLocation={selectedLocation}
-          onSelectLocation={onSelectLocation}
-          webUserId={webUserId}
-          onClose={toggleModal}
-        />}
-
         {isModalOpen2 && <IncLocModal 
           selectedLocation={selectedLocation}
           onClose={toggleModal2}

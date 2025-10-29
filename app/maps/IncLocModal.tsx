@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { FaTimes } from "react-icons/fa";
 import Image from "next/image";
+import FindLocation from "../main/findLocation";
 
 interface EmergencyData {
   id: string;
@@ -56,49 +57,6 @@ const IncLocModal: React.FC<IncLocModalProps> = ({ selectedLocation, onClose}) =
     }
   }, [selectedLocation]);
 
-  // const handleSubmit = async (e: React.FormEvent) => {
-  //   e.preventDefault();
-  //   setIsLoading(true);
-  //   setError(null);
-  //   setSuccess(null);
-
-  //   try {
-  //     const res = await fetch(`${process.env.NEXT_PUBLIC_DOMAIN}/api/emergency/${formData.id}`, {
-  //       method: "PUT",
-  //       headers: { "Content-Type": "application/json" },
-  //       body: JSON.stringify(formData),
-  //     });
-
-  //     const responseData = await res.json();
-
-  //     console.log(responseData)
-
-  //     if (!res.ok) {
-  //       throw new Error(responseData.error || "Failed to update incident");
-  //     }
-  //     setSuccess("Incident updated successfully");
-
-  //     onUpdate()
-  //     onClose();
-
-
-  //   } catch (err) {
-  //     setError(err instanceof Error ? err.message : "Unknown error occurred");
-  //   } finally {
-  //     setIsLoading(false);
-  //   }
-  // };
-
-  const handleInputChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
-  ) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: name === "status" || name === "verified" ? value === "true" : value,
-    }));
-  };
-
   return (
     <div
       className="fixed inset-0 flex items-center justify-center z-50"
@@ -108,7 +66,7 @@ const IncLocModal: React.FC<IncLocModalProps> = ({ selectedLocation, onClose}) =
         {/* Modal Header */}
         <div className="flex items-center justify-between border-b border-gray-700 pb-3">
           <h2 className="text-xl font-bold text-white uppercase tracking-wider">
-            Emergency Details
+            Emergency: {formData.emergency}
           </h2>
           <button
             onClick={onClose}
@@ -119,59 +77,7 @@ const IncLocModal: React.FC<IncLocModalProps> = ({ selectedLocation, onClose}) =
           </button>
         </div>
 
-        {/* Form */}
-        {/* <form onSubmit={handleSubmit} className="mt-4 space-y-4"> */}
-          {/* Emergency Type */}
-          {/* <div>
-            <label htmlFor="emergency" className="block text-white mb-1">
-              Emergency Type *
-            </label>
-            <input
-              type="text"
-              id="emergency"
-              name="emergency"
-              readOnly
-              value={formData.emergency}
-              placeholder="Emergency Type *"
-              className="w-full p-2 bg-gray-700 text-red-500 rounded border border-gray-600"
-              disabled={isLoading}
-            />
-          </div> */}
-
-          {/* Incident Location
-          <div>
-            <label htmlFor="location" className="block text-white mb-1">
-              Incident Location
-            </label>
-            <input
-              type="text"
-              id="barangay"
-              name="barangay"
-              readOnly
-              value={formData.barangay}
-              placeholder="Incident Location"
-              className="w-full p-2 bg-gray-700 text-red-500 rounded border border-gray-600"
-              disabled={isLoading}
-            />
-          </div> */}
-
-          {/* Address */}
-          {/* <div>
-            <label htmlFor="barangay" className="block text-white mb-1">
-              Nearby 200 Meters
-            </label>
-            <input
-              type="text"
-              id="nearby200"
-              name="nearby200"
-              readOnly
-              value={formData.nearby200 ? formData.nearby200 : 'no data'}
-              placeholder="..."
-              className="w-full p-2 bg-gray-700 text-white rounded border border-gray-600"
-              disabled={isLoading}
-            />
-          </div> */}
-
+       
           {/* Incident Photo */}
           <div>
             <Image
@@ -191,8 +97,23 @@ const IncLocModal: React.FC<IncLocModalProps> = ({ selectedLocation, onClose}) =
           {/* Horizontal Line */}
           <div className="w-full border-b border-red-500"></div>
 
+        <div className="flex space-x-4 py-2">
+           
+              <div className="flex-1">
+                  
+                <label htmlFor="location" className="block text-white mb-1">
+                  Location
+                </label>
+                <div className="w-full p-2 bg-gray-700 text-white rounded border border-gray-600">
+                  <FindLocation lat={formData.lat} long={formData.long} />
+                </div>
+            
+            </div>
+
+         
+          </div>
           {/* Sender and Mobile Number */}
-          <div className="flex space-x-4">
+          <div className="flex space-x-4 py-4">
             <div className="flex-1">
               <label htmlFor="name" className="block text-white mb-1">
                 Sender
@@ -226,40 +147,7 @@ const IncLocModal: React.FC<IncLocModalProps> = ({ selectedLocation, onClose}) =
           </div>
 
           {/* Status and Verified Dropdowns */}
-          <div className="flex space-x-4">
-            <div className="flex-1">
-              <label htmlFor="status" className="block text-white mb-1">
-                Status
-              </label>
-              <select
-                id="status"
-                name="status"
-                value={formData.status.toString()}
-                onChange={handleInputChange}
-                className="w-full p-2 bg-gray-700 text-white rounded border border-gray-600"
-                disabled={isLoading}
-              >
-                <option value="true">True</option>
-                <option value="false">False</option>
-              </select>
-            </div>
-            <div className="flex-1">
-              <label htmlFor="verified" className="block text-white mb-1">
-                Verified
-              </label>
-              <input
-                id="verified"
-                name="verified"
-                value={formData.verified}
-                onChange={handleInputChange}
-                className="w-full p-2 bg-gray-700 text-white rounded border border-gray-600"
-                disabled={isLoading}
-              >
-                {/* <option value="true">True</option>
-                <option value="false">False</option> */}
-              </input>
-            </div>
-          </div>
+     
 
           {/* Modal Footer */}
           <div className="mt-6 flex justify-end space-x-4">
@@ -287,7 +175,6 @@ const IncLocModal: React.FC<IncLocModalProps> = ({ selectedLocation, onClose}) =
           {success && (
             <div className="mt-4 text-green-500 text-sm">{success}</div>
           )}
-        {/* </form> */}
       </div>
     </div>
   );

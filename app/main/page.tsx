@@ -17,6 +17,7 @@ import { useRouter } from 'next/navigation';
 import AlertModal from './alertModal';
 import PostModal from './postModal';
 import ReportsSection from './reportModal';
+import FindLocation from './findLocation';
 
 interface EmergencyData {
   id: string;
@@ -134,7 +135,7 @@ const Dashboard: React.FC = () => {
     const intervalId = setInterval(() => {
       console.log('Refreshing emergency data at:', new Date().toLocaleTimeString());
       fetchEmergencyData(userData.munId, userData.provId);
-    }, 30000);
+    }, 60000);
 
     return () => clearInterval(intervalId);
   }, [userData?.munId, userData?.provId]);
@@ -282,7 +283,7 @@ const Dashboard: React.FC = () => {
                         >
                           <TableCell>{item.emergency}</TableCell>
                           <TableCell>{item.name}</TableCell>
-                          <TableCell>{item.barangay}</TableCell>
+                          <TableCell><FindLocation lat={item.lat} long={item.long}/></TableCell>
                           <TableCell>{item.munName}</TableCell>
                           <TableCell>{item.mobile}</TableCell>
                           <TableCell>

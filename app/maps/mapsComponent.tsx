@@ -98,22 +98,14 @@ const MapPage: React.FC<{ munId: string, provId: string, lat: string, long: stri
     };
 
 
-
-    
+  
     // Use requestAnimationFrame to ensure execution after paint
     requestAnimationFrame(() => {
       initializeMap();
     });
   }, [isScriptLoaded, lat, long, zoom, munId, provId, setMap]);
 
-  // Function to clear all markers, wrapped in useCallback
-  // const clearMarkers = useCallback(() => {
-  //   markers.forEach((marker) => {
-  //     marker.map = null; // Remove marker from the map
-  //   });
-  //   setMarkers([]); // Reset the markers state
-  // }, [markers]);
-
+ 
 
 useEffect(() => {
   const updateMap = async () => {
@@ -208,10 +200,7 @@ useEffect(() => {
             gap: 8px;
             font-size: 14px;
           ">
-            <span style="font-weight: bold; color: #ffffff;">Location:</span>
-            <span style="font-weight: bold; color: #FF0000;">${selectedLocation.barangay}</span>
-            <span style="font-weight: bold; color: #87ceeb;">Nearby: 200m:</span>
-            <span style="font-weight: bold; color: #87ceeb;">${selectedLocation.nearby200}</span>
+         
             <span style="font-weight: bold; color: #ffffff;">Sender:</span>
             <span>${selectedLocation.name}</span>
             <span style="font-weight: bold; color: #ffffff;">Mobile:</span>
@@ -259,7 +248,7 @@ useEffect(() => {
 //this code for notification when a emergency is received
 
 useEffect(() => {
-  const updateMap = async () => {
+  const updateMap2 = async () => {
     if (map && selectedLocation2) {
       const newCenter = {
         lat: parseFloat(selectedLocation2.lat),
@@ -280,8 +269,8 @@ useEffect(() => {
       )) as google.maps.MarkerLibrary;
 
       // Create blinking marker content
-      const blinkingMarkerDiv = document.createElement('div');
-      blinkingMarkerDiv.innerHTML = `
+      const blinkingMarkerDiv2 = document.createElement('div');
+      blinkingMarkerDiv2.innerHTML = `
         <div style="
           width: 30px;
           height: 30px;
@@ -320,13 +309,13 @@ useEffect(() => {
       const newMarker = new AdvancedMarkerElement({
         position: newCenter,
         map: map,
-        title: 'Selected Location',
-        content: blinkingMarkerDiv,
+        title: 'Notified Location',
+        content: blinkingMarkerDiv2,
       });
 
       // setMarkers((prevMarkers) => [...prevMarkers, newMarker]);
 
-      const infoWindowContent = `
+      const infoWindowContent2 = `
         <div style="
           background-color: #1c1c1c;
           color: #e0e0e0;
@@ -351,10 +340,10 @@ useEffect(() => {
             gap: 8px;
             font-size: 14px;
           ">
-            <span style="font-weight: bold; color: #ffffff;">Location:</span>
-            <span style="font-weight: bold; color: #FF0000;">${selectedLocation2.barangay}</span>
-            <span style="font-weight: bold; color: #87ceeb;">Nearby: 200m:</span>
-            <span style="font-weight: bold; color: #87ceeb;">${selectedLocation2.nearby200}</span>
+            <span style="font-weight: bold; color: #ffffff;">Sender:</span>
+            <span style="font-weight: bold; color: #FF0000;">${selectedLocation2.name}</span>
+            <span style="font-weight: bold; color: #87ceeb;">Mobile#:</span>
+            <span style="font-weight: bold; color: #87ceeb;">${selectedLocation2.mobile}</span>
           
           </div>
           <div style="
@@ -371,25 +360,25 @@ useEffect(() => {
       `;
 
       // Create and open new InfoWindow
-      const newInfoWindow = new google.maps.InfoWindow({
-        content: infoWindowContent,
+      const newInfoWindow2 = new google.maps.InfoWindow({
+        content: infoWindowContent2,
       });
 
       newMarker.addListener('gmp-click', () => {
-        newInfoWindow.open({
+        newInfoWindow2.open({
           anchor: newMarker,
           map: map,
         });
       });
 
-      newInfoWindow.open(map, newMarker);
+      newInfoWindow2.open(map, newMarker);
 
       // Update the current InfoWindow state
-      setInfoWindow(newInfoWindow);
+      setInfoWindow(newInfoWindow2);
     }
   };
 
-  updateMap();
+  updateMap2();
 }, [map, selectedLocation2, lat, long, munId, provId]);
 
 
