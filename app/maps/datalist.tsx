@@ -86,7 +86,7 @@ const unverifiedCount = locations.filter((location) => location.verified !== "ve
                 location.verified ? ' border-green-600 rounded-xl' : ' border-red-600 rounded-xl'
               }`}
             >
-              <div className={`rounded-lg p-4 sm:p-4 hover:bg-gray-700 transition-colors duration-200 border border-gray-600 ${location.status == "true" ? 'bg-green-800':'bg-red-900'} `}>
+              <div className={`rounded-lg p-4 sm:p-4 hover:bg-gray-700 transition-colors duration-200 border border-gray-600 ${location.status == "confirmed" ? 'bg-green-800':'bg-red-900'} `}>
                 <div className="grid gap-2 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-2">
                   <div onClick={() => handleLocationIncident(location)} className="flex-1 cursor-pointer">
                     <div className="flex items-center justify-start">

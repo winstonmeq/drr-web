@@ -15,9 +15,10 @@ interface PlaceData {
 interface FindLocationProps {
   lat: string;
   long: string;
+  onFound?: (barangay: string) => void; // ⬅️ NEW CALLBACK
 }
 
-const FindLocation: React.FC<FindLocationProps> = ({ lat, long }) => {
+const FindLocation: React.FC<FindLocationProps> = ({ lat, long, onFound }) => {
   const [placeData, setPlaceData] = useState<PlaceData | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -34,8 +35,17 @@ const FindLocation: React.FC<FindLocationProps> = ({ lat, long }) => {
           `https://restapi.qalertapp.com/api/places?lat=${lat}&long=${long}`
         );
         if (!res.ok) throw new Error('Failed to fetch place');
+
         const data: PlaceData = await res.json();
         setPlaceData(data);
+
+        const name = data?.current?.[0]?.name || "";
+
+        // ⬅️ NEW: return barangay to parent
+        if (onFound && name) {
+          onFound(name);
+        }
+
       } catch (err) {
         console.error('Error fetching place data:', err);
       } finally {
@@ -44,7 +54,7 @@ const FindLocation: React.FC<FindLocationProps> = ({ lat, long }) => {
     };
 
     fetchPlace();
-  }, [lat, long]);
+  }, [lat, long, onFound]);
 
   const displayName = placeData?.current?.[0]?.name;
 

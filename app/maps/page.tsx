@@ -1,11 +1,11 @@
-'use client';
+"use client";
 
-import React, { useEffect, useState } from 'react';
-import MapComponent from './mapsComponent';
-import DataList from './datalist';
+import React, { useEffect, useState } from "react";
+import MapComponent from "./mapsComponent";
+import DataList from "./datalist";
 import { messaging } from "../lib/firebase";
 import { onMessage } from "firebase/messaging";
-import { useRouter } from 'next/navigation';
+import { useRouter } from "next/navigation";
 
 interface EmergencyData {
     id: string;
@@ -53,9 +53,9 @@ const Notification: React.FC<{
         <div className="fixed top-4 right-10 z-50 max-w-md w-full bg-red-600 text-white rounded-lg shadow-2xl p-6 animate-slide-in">
             <div className="flex justify-between items-center">
                 <h2 className="text-xl font-bold">Emergency Alert</h2>
-                <button 
+                <button
                     onClick={onClose}
-                    className="text-white hover:text-gray-200 focus:outline-none"
+                    className="text-white hover:text-gray-200"
                 >
                     ✕
                 </button>
@@ -63,33 +63,32 @@ const Notification: React.FC<{
             <div className="mt-2">
                 <p className="text-sm">{message}</p>
             </div>
-            <div className="mt-4 flex justify-end">
-                <button 
-                    onClick={onClose}
-                    className="bg-white text-red-600 px-4 py-2 rounded-md font-semibold hover:bg-gray-100"
-                >
-                    Dismiss
-                </button>
-            </div>
         </div>
     );
 };
 
+// ----------------------------
+// SOUND ENABLE POPUP (FIXED)
+// ----------------------------
 const TestAudioPopup: React.FC<{
-    onClose: () => void;
-}> = ({ onClose }) => {
+    onEnableSound: () => void;
+}> = ({ onEnableSound }) => {
     return (
-        <div className="fixed inset-0 p-4 flex items-start justify-end z-50 bg-opacity-10">
-            <div className="bg-white rounded-lg shadow-2xl p-4">
-                <h2 className="text-xl font-bold mb-4 text-center">Sound Notification!</h2>
-                <div className="flex justify-center">
-                    <button
-                        onClick={onClose}
-                        className="bg-red-500 text-white px-4 py-2 rounded-md font-semibold hover:bg-red-600"
-                    >
-                        Close
-                    </button>
-                </div>
+        <div className="fixed inset-0 flex items-center justify-center bg-black/40 z-[9999]">
+            <div className="bg-white p-6 rounded-lg shadow-xl max-w-sm">
+                <h2 className="text-xl font-bold text-center mb-4">
+                    Enable Sound
+                </h2>
+                <p className="text-center text-sm mb-4">
+                    Click below to allow sound for emergency alerts.
+                </p>
+
+                <button
+                    onClick={onEnableSound}
+                    className="bg-red-600 text-white w-full py-2 rounded-md font-semibold hover:bg-red-700"
+                >
+                    Enable Sound
+                </button>
             </div>
         </div>
     );
@@ -98,27 +97,67 @@ const TestAudioPopup: React.FC<{
 const Page: React.FC = () => {
     const [selectedLocation, setSelectedLocation] = useState<EmergencyData | null>(null);
     const [selectedLocation2, setSelectedLocation2] = useState<EmergencyData | null>(null);
-
     const [data, setData] = useState<EmergencyData[]>([]);
-    const [notification, setNotification] = useState<{ message: string; } | null>(null);
-    const [showTestAudioPopup, setShowTestAudioPopup] = useState(true); // Default to true
+    const [notification, setNotification] = useState<{ message: string } | null>(null);
+    const [showSoundPopup, setShowSoundPopup] = useState(false);
     const [lastPlayed, setLastPlayed] = useState<number>(0);
     const [userData, setUserData] = useState<UserData | null>(null);
     const [error, setError] = useState<string | null>(null);
+
     const router = useRouter();
 
-   
+    // ----------------------------
+    // 1. ENABLE SOUND HANDLER
+    // ----------------------------
+    const enableSound = async () => {
+        try {
+            const audio = new Audio("/sound/alarm2.wav");
+
+            // MUST be directly triggered from button CLICK
+            await audio.play(); 
+            audio.pause();
+            audio.currentTime = 0;
+
+            // Save user choice
+            localStorage.setItem("soundAllowed", "yes");
+
+            setShowSoundPopup(false);
+            console.log("Sound enabled!");
+        } catch (err) {
+            console.log("Sound not allowed yet", err);
+        }
+    };
+
+    // ----------------------------
+    // 2. LOAD & CHECK SOUND SETTING
+    // ----------------------------
+    useEffect(() => {
+        const allowed = localStorage.getItem("soundAllowed");
+        if (!allowed) {
+            setShowSoundPopup(true);
+        }
+    }, []);
+
+    // ----------------------------
+    // 3. PLAY SOUND FOR FCM
+    // ----------------------------
     const playNotificationSound = () => {
         const now = Date.now();
         if (now - lastPlayed < 1000) return;
-        const audio = new Audio('/sound/alarm2.wav');
-        audio.volume = 0.5;
-        audio.play().catch((error) => {
-            console.error('Error playing notification sound:', error);
+
+        const audio = new Audio("/sound/alarm2.wav");
+        audio.volume = 0.6;
+
+        audio.play().catch((err) => {
+            console.error("Autoplay blocked:", err);
         });
+
         setLastPlayed(now);
     };
 
+    // ----------------------------
+    // 4. FETCH EMERGENCY DATA
+    // ----------------------------
     const fetchData = async (munId: string, provId: string) => {
         try {
             const res = await fetch(
@@ -128,18 +167,20 @@ const Page: React.FC = () => {
             const result = await res.json();
             setData(result.emergency_data);
             return result.emergency_data;
-        } catch (error) {
-            console.error("Error fetching emergency data:", error);
-            setError("Failed to load emergency data. Please try again.");
-            setData([]);
+        } catch (err) {
+            console.error("Error:", err);
+            setError("Failed to load emergency data.");
             return [];
         }
     };
 
+    // ----------------------------
+    // 5. AUTH + FCM + REALTIME UPDATE
+    // ----------------------------
     useEffect(() => {
-        const token = typeof window !== 'undefined' ? localStorage.getItem("authData") : null;
+        const token = localStorage.getItem("authData");
+
         if (!token) {
-            setError("No token found. Please log in.");
             router.push("/weblogin");
             return;
         }
@@ -149,83 +190,69 @@ const Page: React.FC = () => {
 
         fetchData(authData.user.munId, authData.user.provId);
 
-        messaging.then((msg) => {
-            if (msg) {
-                const subscribe = onMessage(msg, async (payload) => {
-                    console.log("FCM Message Received:", payload);
-                    setNotification({
-                        message: payload.notification?.body || "No notification body available.",
+        messaging
+            .then((msg) => {
+                if (msg) {
+                    const unsubscribe = onMessage(msg, async (payload) => {
+                        console.log("FCM Message:", payload);
+
+                        setNotification({
+                            message: payload.notification?.body || "",
+                        });
+
+                        const newData = await fetchData(
+                            authData.user.munId,
+                            authData.user.provId
+                        );
+
+                        if (newData.length > 0) {
+                            setSelectedLocation2(newData[0]);
+                        }
+
+                        playNotificationSound();
                     });
 
-                    const newData = await fetchData(authData.user.munId, authData.user.provId);
-                    if (newData.length > 0) {
-                        setSelectedLocation2(newData[0]);
-                    } else {
-                        setSelectedLocation2(null);
-                    }
-
-                    playNotificationSound();
-                });
-                return () => subscribe();
-            }
-        }).catch((error) => {
-            console.error("Error initializing messaging:", error);
-        });
+                    return () => unsubscribe();
+                }
+            })
+            .catch((err) => console.error("Messaging init error:", err));
     }, []);
-
-    const closeNotification = () => {
-        setNotification(null);
-    };
-
-    const closeTestAudioPopup = () => {
-        setShowTestAudioPopup(false);
-        // Save to localStorage only in the browser
-        if (typeof window !== 'undefined') {
-            localStorage.setItem('soundNotificationDismissed', 'true');
-        }
-    };
-
-    const handleUpdate = () => {
-        if (userData?.munId && userData?.provId) {
-            fetchData(userData.munId, userData.provId);
-        } else {
-            setError("User location data is missing.");
-        }
-    };
 
     return (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-[25%_75%] h-screen">
             <div className="w-full h-full overflow-y-auto">
-                <DataList 
-                    onSelectLocation={setSelectedLocation} 
+                <DataList
+                    onSelectLocation={setSelectedLocation}
                     locations={data}
                     webUserId={userData?.id || ""}
-                    onUpdate={handleUpdate} 
+                    onUpdate={() =>
+                        userData && fetchData(userData.munId, userData.provId)
+                    }
                 />
             </div>
+
             <div className="w-full h-full">
-                <MapComponent 
+                <MapComponent
                     locations={data}
-                    selectedLocation={selectedLocation} 
-                    selectedLocation2={selectedLocation2} 
-                    munId={userData?.munId ?? ''} 
-                    provId={userData?.provId ?? ''} 
-                    lat={userData?.lat ?? ''} 
-                    long={userData?.long ?? ''} 
-                    zoom={userData?.zoom ?? ''}
+                    selectedLocation={selectedLocation}
+                    selectedLocation2={selectedLocation2}
+                    munId={userData?.munId ?? ""}
+                    provId={userData?.provId ?? ""}
+                    lat={userData?.lat ?? ""}
+                    long={userData?.long ?? ""}
+                    zoom={userData?.zoom ?? ""}
                 />
             </div>
+
             {notification && (
-                <Notification 
-                    message={notification.message} 
-                    onClose={closeNotification} 
+                <Notification
+                    message={notification.message}
+                    onClose={() => setNotification(null)}
                 />
             )}
-            {showTestAudioPopup && (
-                <TestAudioPopup 
-                    onClose={closeTestAudioPopup} 
-                />
-            )}
+
+            {showSoundPopup && <TestAudioPopup onEnableSound={enableSound} />}
+
             {error && (
                 <div className="fixed bottom-4 right-4 bg-red-500 text-white p-4 rounded-lg">
                     {error}

@@ -11,11 +11,14 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
-import { Loader2, AlertCircle } from 'lucide-react';
+import { Loader2, AlertCircle, MoreHorizontal } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import FindLocation from './findLocation';
 import PostModal from './postModal';
 import FindAdress from './findAddress';
+import { Badge } from '@/components/ui/badge';
+import { DropdownMenuItem } from '@radix-ui/react-dropdown-menu';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 
 interface EmergencyItem {
   id: string;
@@ -145,16 +148,16 @@ const EmergencyList: React.FC = () => {
     fetchEmergencyData(authData.user.munId, authData.user.provId);
   }, []);
 
-  useEffect(() => {
-    if (!userData?.munId || !userData?.provId) return;
+  // useEffect(() => {
+  //   if (!userData?.munId || !userData?.provId) return;
 
-    const intervalId = setInterval(() => {
-      console.log('Refreshing emergency data at:', new Date().toLocaleTimeString());
-      fetchEmergencyData(userData.munId, userData.provId);
-    }, 60000);
+  //   const intervalId = setInterval(() => {
+  //     console.log('Refreshing emergency data at:', new Date().toLocaleTimeString());
+  //     fetchEmergencyData(userData.munId, userData.provId);
+  //   }, 60000);
 
-    return () => clearInterval(intervalId);
-  }, [userData?.munId, userData?.provId]);
+  //   return () => clearInterval(intervalId);
+  // }, [userData?.munId, userData?.provId]);
 
   const handleOpenUpdateModal = (item: EmergencyItem) => {
     setSelectedEmergency(item);
@@ -210,52 +213,155 @@ const EmergencyList: React.FC = () => {
                       <TableHead>Verified</TableHead>
                       <TableHead>Status</TableHead>
                       <TableHead>Created At</TableHead>
-                      <TableHead>Action</TableHead>
+                      <TableHead>Actions</TableHead>
                     </TableRow>
                   </TableHeader>
-                  <TableBody>
-                    {emergencyData.map((item) => (
-                      <TableRow
-                        key={item.id}
-                        className={`hover:bg-gray-50 transition-colors ${
-                          item.status === 'unconfirmed' ? 'bg-red-100' : ''
-                        }`}
-                      >
-                        <TableCell>{item.emergency}</TableCell>
-                        <TableCell>{item.name}</TableCell>
-                        <TableCell>{item.barangay == "" ? <FindLocation lat={item.lat} long={item.long} /> : item.barangay }  </TableCell>
-                        <TableCell>{item.munName}</TableCell>
-                        <TableCell>{item.mobile}</TableCell>
-                        <TableCell>
-                          {item.verified === 'verified' ? (
-                            <span className="text-green-600 font-medium">Verified</span>
-                          ) : (
-                            <span className="text-red-500 font-medium">Unverified</span>
-                          )}
-                        </TableCell>
-                        <TableCell>{item.status}</TableCell>
-                        <TableCell>{new Date(item.createdAt).toLocaleString()}</TableCell>
-                        <TableCell className="flex gap-2">
-                                                        <Button
-                              className="w-full sm:w-auto hover:bg-gray-600 transition-colors duration-200 cursor-pointer text-xs sm:text-sm"
-                              onClick={() => {
-                                setSelectedPostData(item);
-                                setShowPostModal(true);
-                              }}
-                            >
-                              View
-                            </Button>
+               <TableBody>
+  {emergencyData.map((item) => (
+    <TableRow
+      key={item.id}
+      className={`hover:bg-gray-50 transition-colors`}
+    >
+      <TableCell>
+  {(() => {
+    switch (item.emergency.toLowerCase()) {
+      case "fire":
+        return <Badge className="bg-red-600 text-white">FIRE</Badge>;
+      case "ambulance":
+        return <Badge className="bg-blue-600 text-white">Ambulance</Badge>;
+      case "flood":
+        return <Badge className="bg-teal-600 text-white">Flood</Badge>;
+      case "landslide":
+        return <Badge className="bg-orange-500 text-white">Landslide</Badge>;
+      case "police":
+        return <Badge className="bg-indigo-600 text-white">Police</Badge>;
+      case "road_accident":
+        return <Badge className="bg-yellow-500 text-black">Road Accident</Badge>;
+      default:
+        return <Badge className="bg-gray-500 text-white">{item.emergency}</Badge>;
+    }
+  })()}
+</TableCell>
 
-                          <Button
-                            className="hover:bg-blue-600 transition-colors text-xs sm:text-sm"
-                            onClick={() => handleOpenUpdateModal(item)}
-                          >
-                            Edit
-                          </Button>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
+      <TableCell>{item.name}</TableCell>
+
+      <TableCell>
+        {/* {item.barangay == "" ? (
+          <FindLocation lat={item.lat} long={item.long} />
+        ) : (
+          item.barangay
+        )} */}
+
+        {item.barangay === "" ? (
+            <FindLocation
+              lat={item.lat}
+              long={item.long}
+              onFound={(found) => {
+                console.log("Auto Barangay Found:", found);
+
+                // prevent infinite update loop
+                if (!item.barangay && found !== "Unknown location") {
+                  updateEmergency(
+                    item.id,
+                    item.status,
+                    item.verified,
+                    found
+                  );
+                }
+              }}
+            />
+          ) : (
+            item.barangay
+          )}
+          
+      </TableCell>
+
+      <TableCell>{item.munName}</TableCell>
+      <TableCell>{item.mobile}</TableCell>
+
+     <TableCell>
+  {item.verified === "verified" ? (
+    <Badge className="bg-blue-600 text-white">Verified</Badge>
+  ) : (
+    <Badge className="bg-orange-500 text-white">Unverified</Badge>
+  )}
+</TableCell>
+
+{/* STATUS BADGE */}
+<TableCell>
+  {item.status === "confirmed" ? (
+    <Badge className="bg-red-600 text-white">Confirmed</Badge>
+  ) : (
+    <Badge className="bg-gray-500 text-white">Unconfirmed</Badge>
+  )}
+</TableCell>
+
+      <TableCell>{new Date(item.createdAt).toLocaleString()}</TableCell>
+
+      <TableCell className="flex gap-2">
+
+        {/* <Button
+          className="w-full sm:w-auto hover:bg-gray-600 transition-colors duration-200 cursor-pointer text-xs sm:text-sm"
+          onClick={() => {
+            setSelectedPostData(item)
+            setShowPostModal(true)
+          }}
+        >
+          View
+        </Button>
+
+        <Button
+          className="hover:bg-blue-600 transition-colors text-xs sm:text-sm"
+          onClick={() => handleOpenUpdateModal(item)}
+        >
+          Edit
+        </Button> */}
+
+        <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                    <Button aria-haspopup="true" size="icon" variant="ghost">
+                                    <MoreHorizontal className="h-4 w-4" />
+                                    <span className="sr-only">Toggle menu</span>
+                                    </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end">
+                                    {/* <DropdownMenuLabel>Actions</DropdownMenuLabel> */}
+                                    <DropdownMenuItem>
+                                                    <Button variant={"ghost"} 
+                                                     onClick={() => {
+                                                        setSelectedPostData(item)
+                                                        setShowPostModal(true)
+                                                      }}
+                                                    >
+                                                        Publish
+                                                    </Button>
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem>  <Button variant={"ghost"} 
+                                                     onClick={() => {
+                                                       handleOpenUpdateModal(item)
+                                                      }}
+                                                    >
+                                                        Edit
+                                                    </Button></DropdownMenuItem>
+                                    <DropdownMenuItem className="text-destructive">
+                                        <Button variant={"ghost"} 
+                                                     onClick={() => {
+                                                        
+                                                      }}
+                                                    >
+                                                        Delete
+                                                    </Button>
+                                    </DropdownMenuItem>
+                                </DropdownMenuContent>
+          </DropdownMenu>
+
+      </TableCell>
+
+
+    </TableRow>
+  ))}
+</TableBody>
+
                 </Table>
               </div>
             </CardContent>
