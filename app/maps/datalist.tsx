@@ -68,11 +68,12 @@ const DataList: React.FC<DataListProps> = ({ locations, onSelectLocation, onUpda
   };
 
   
-const unverifiedCount = locations.filter((location) => location.verified !== "verified").length;
+const unverifiedCount = locations.filter((location) => location.status !== "confirmed").length;
+
   return (
     <div className="w-full p-4 bg-gray-800 min-h-screen overflow-hidden">
       <h2 className="text-xl sm:text-xl font-bold text-white mb-4 tracking-wider pb-2">
-{locations.length} Active Emergency Reports ({unverifiedCount} Unverified)      </h2>
+{locations.length} Active Emergency Reports, ({unverifiedCount} Unconfirmed)      </h2>
       {locations.length === 0 ? (
         <div className="text-center py-8 text-gray-400 text-sm sm:text-base">
           NO ACTIVE EMERGENCIES DETECTED

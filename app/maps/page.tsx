@@ -132,10 +132,10 @@ const Page: React.FC = () => {
     // 2. LOAD & CHECK SOUND SETTING
     // ----------------------------
     useEffect(() => {
-        const allowed = localStorage.getItem("soundAllowed");
-        if (!allowed) {
+        // const allowed = localStorage.getItem("soundAllowed");
+        // if (!allowed) {
             setShowSoundPopup(true);
-        }
+        // }
     }, []);
 
     // ----------------------------
@@ -174,49 +174,60 @@ const Page: React.FC = () => {
         }
     };
 
-    // ----------------------------
-    // 5. AUTH + FCM + REALTIME UPDATE
-    // ----------------------------
-    useEffect(() => {
-        const token = localStorage.getItem("authData");
+useEffect(() => {
+  const token = localStorage.getItem("authData");
 
-        if (!token) {
-            router.push("/weblogin");
-            return;
+  if (!token) {
+    router.push("/weblogin");
+    return;
+  }
+
+  const authData: AuthData = JSON.parse(token);
+  setUserData(authData.user);
+
+  // Initial fetch
+  const loadInitialData = async () => {
+     await fetchData(
+      authData.user.munId,
+      authData.user.provId
+    );
+  
+  };
+
+  loadInitialData();
+
+  let unsubscribe: (() => void) | undefined;
+
+  messaging
+    .then((msg) => {
+      if (!msg) return;
+
+      unsubscribe = onMessage(msg, async (payload) => {
+        console.log("FCM Message:", payload);
+
+        setNotification({
+          message: payload.notification?.body || "",
+        });
+
+        const newData = await fetchData(
+          authData.user.munId,
+          authData.user.provId
+        );
+
+        if (newData.length > 0) {
+          setSelectedLocation2(newData[0]);
         }
 
-        const authData: AuthData = JSON.parse(token);
-        setUserData(authData.user);
+        playNotificationSound();
+      });
+    })
+    .catch(console.error);
 
-        fetchData(authData.user.munId, authData.user.provId);
+  return () => {
+    if (unsubscribe) unsubscribe();
+  };
+}, [router]);
 
-        messaging
-            .then((msg) => {
-                if (msg) {
-                    const unsubscribe = onMessage(msg, async (payload) => {
-                        console.log("FCM Message:", payload);
-
-                        setNotification({
-                            message: payload.notification?.body || "",
-                        });
-
-                        const newData = await fetchData(
-                            authData.user.munId,
-                            authData.user.provId
-                        );
-
-                        if (newData.length > 0) {
-                            setSelectedLocation2(newData[0]);
-                        }
-
-                        playNotificationSound();
-                    });
-
-                    return () => unsubscribe();
-                }
-            })
-            .catch((err) => console.error("Messaging init error:", err));
-    }, []);
 
     return (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-[25%_75%] h-screen">

@@ -129,7 +129,7 @@ useEffect(() => {
     <>
       {/* 🔥 Notification Popup */}
       {notificationPopup && (
-        <div className="fixed top-4 right-4 z-50 bg-white shadow-xl border-l-4 border-green-600 p-4 rounded-md animate-in fade-in zoom-in">
+        <div className="fixed top-4 right-4 z-50 bg-yellow-300 shadow-xl border-l-4 border-red-600 p-4 rounded-md animate-in fade-in zoom-in">
           <h2 className="font-bold text-lg">{notificationPopup.title}</h2>
           <p className="text-sm text-gray-600">{notificationPopup.body}</p>
 

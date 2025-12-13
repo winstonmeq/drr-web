@@ -68,7 +68,7 @@ const FindLocation: React.FC<FindLocationProps> = ({ lat, long, onFound }) => {
       ) : (
         <span
           className={
-            displayName ? 'text-blue-600 font-medium' : 'text-gray-400 italic'
+            displayName ? 'text-white font-medium' : 'text-gray-400 italic'
           }
         >
           {displayName || 'Unknown location'}

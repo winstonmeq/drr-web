@@ -76,6 +76,9 @@ const IncLocModal: React.FC<IncLocModalProps> = ({ selectedLocation, onClose}) =
             <FaTimes size={20} />
           </button>
         </div>
+           <div className="py-4">
+              <span className="text-white">Date&Time: {new Date(formData.createdAt).toLocaleString()}</span>
+            </div>
 
        
           {/* Incident Photo */}
@@ -105,10 +108,18 @@ const IncLocModal: React.FC<IncLocModalProps> = ({ selectedLocation, onClose}) =
                   Location
                 </label>
                 <div className="w-full p-2 bg-gray-700 text-white rounded border border-gray-600">
-                  <FindLocation lat={formData.lat} long={formData.long} />
+                                 
+                    <span>
+                      {formData.barangay === '' ? (
+                        <FindLocation lat={formData.lat} long={formData.long} />
+                      ) : (
+                        formData.barangay
+                      )}
+                     </span>
                 </div>
             
             </div>
+         
 
          
           </div>

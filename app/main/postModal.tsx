@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, {useState } from 'react';
 import { motion } from 'framer-motion';
 import { X, MapPin, Phone, User, Clock, AlertTriangle, FileText, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -24,16 +24,16 @@ interface EmergencyData {
   munId: string;
 }
 
-interface Place {
-  polType: string;
-  name: string;
-}
+// interface Place {
+//   polType: string;
+//   name: string;
+// }
 
-interface PlaceData {
-  current: Place[];
-  nearby200: Place[];
-  nearby500: Place[];
-}
+// interface PlaceData {
+//   current: Place[];
+//   nearby200: Place[];
+//   nearby500: Place[];
+// }
 
 interface PostModalProps {
   onClose: () => void;
@@ -45,30 +45,30 @@ interface PostModalProps {
 const PostModal: React.FC<PostModalProps> = ({ onClose, data, selectedLocation, webUserId }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState<EmergencyData>({ ...data });
-  const [placeData, setPlaceData] = useState<PlaceData | null>(null);
-  const [loading, setLoading] = useState(false);
+  // const [placeData, setPlaceData] = useState<PlaceData | null>(null);
+  // const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    if (!selectedLocation.lat || !selectedLocation.long) return;
+  // useEffect(() => {
+  //   if (!selectedLocation.lat || !selectedLocation.long) return;
 
-    const fetchPlace = async () => {
-      setLoading(true);
-      try {
-        const res = await fetch(
-          `https://restapi.qalertapp.com/api/places?lat=${selectedLocation.lat}&long=${selectedLocation.long}`
-        );
-        const data = await res.json();
-        console.log(data);
-        setPlaceData(data);
-      } catch (err) {
-        console.error('Error fetching place data:', err);
-      } finally {
-        setLoading(false);
-      }
-    };
+  //   const fetchPlace = async () => {
+  //     setLoading(true);
+  //     try {
+  //       const res = await fetch(
+  //         `https://restapi.qalertapp.com/api/places?lat=${selectedLocation.lat}&long=${selectedLocation.long}`
+  //       );
+  //       const data = await res.json();
+  //       console.log(data);
+  //       setPlaceData(data);
+  //     } catch (err) {
+  //       console.error('Error fetching place data:', err);
+  //     } finally {
+  //       setLoading(false);
+  //     }
+  //   };
 
-    fetchPlace();
-  }, [selectedLocation.lat, selectedLocation.long]);
+  //   fetchPlace();
+  // }, [selectedLocation.lat, selectedLocation.long]);
 
   const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setFormData({
@@ -102,7 +102,7 @@ const PostModal: React.FC<PostModalProps> = ({ onClose, data, selectedLocation, 
         emergency,
         lat: selectedLocation.lat || lat,
         long: selectedLocation.long || long,
-        barangay: placeData?.current?.[0]?.name || barangay,
+        barangay,
         munName,
         name,
         mobile,
@@ -197,20 +197,14 @@ const PostModal: React.FC<PostModalProps> = ({ onClose, data, selectedLocation, 
             </div>
 
             {/* Location with Loading Spinner */}
-            <div className="flex items-center gap-2">
+         
+              <div className="flex items-center gap-2">
               <MapPin className="w-4 h-4 text-gray-500" />
               <span className="font-semibold">Location:</span>
-              {loading ? (
-                <div className="flex items-center gap-2 text-gray-500">
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                  <span className="text-sm">Fetching location...</span>
-                </div>
-              ) : placeData?.current?.[0]?.name ? (
-                <span>{placeData.current[0].name}</span>
-              ) : (
-                <span className="text-gray-400">Unknown location</span>
-              )}
+                <span >{formData.barangay}</span>
+             
             </div>
+
 
             {/* Situation Textarea */}
             <div className="flex flex-col gap-1 mt-4">

@@ -262,7 +262,7 @@ const AlertModal: React.FC<AlertModalProps> = ({ onClose, lat, lng,mobile, webUs
             />
             </div>
           </div>
-
+{/* 
      <div className="flex space-x-4">
              <div className="flex-1">
               <label htmlFor="barangay" className="block text-white mb-1">
@@ -279,7 +279,7 @@ const AlertModal: React.FC<AlertModalProps> = ({ onClose, lat, lng,mobile, webUs
                 disabled={isLoading}
               />
             </div>
-          </div>
+          </div> */}
 
           <div className="flex space-x-4">
              <div className="flex-1">

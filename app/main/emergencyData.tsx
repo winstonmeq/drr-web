@@ -94,7 +94,7 @@ const EmergencyList: React.FC = () => {
   };
 
   const updateEmergency = async (id: string, status: string, verified: string, barangay: string) => {
-    setIsLoading(true);
+    // setIsLoading(true);
     setError(null);
     try {
       const res = await fetch(`${process.env.NEXT_PUBLIC_DOMAIN}/api/emergency/${id}`, {
@@ -130,7 +130,7 @@ const EmergencyList: React.FC = () => {
       console.error('Error updating emergency:', error);
       setError('Failed to update emergency. Please try again.');
     } finally {
-      setIsLoading(false);
+      // setIsLoading(false);
     }
   };
 

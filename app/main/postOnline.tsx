@@ -248,7 +248,7 @@ const PostsOnline: React.FC = () => {
               <TableHeader>
                 <TableRow>
                   <TableHead>Emergency</TableHead>
-                  <TableHead>Name</TableHead>
+                  <TableHead>Mun/Brgy</TableHead>
                   <TableHead>Location</TableHead>
                   <TableHead className="max-w-[180px]">Situation</TableHead>
                   <TableHead>Mobile</TableHead>
